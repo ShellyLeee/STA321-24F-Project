@@ -7,6 +7,8 @@ import org.apache.hadoop.mapreduce.Mapper;
 import java.io.IOException;
 
 public class TradePreprocessingMapper extends Mapper<LongWritable, Text, Text, Text>{
+
+    // 设置的时间窗口
     protected LongWritable startTime = new LongWritable(20190102091500000L);
     protected LongWritable endTime = new LongWritable(20190102113000000L);
 
@@ -27,7 +29,7 @@ public class TradePreprocessingMapper extends Mapper<LongWritable, Text, Text, T
         // 判断ExecType为成交【先Selection，后Projection】
         if (ExecType.equals("F") && tradetime.get() >= startTime.get() && tradetime.get() <= endTime.get()) {
             // 生成输出格式，Key: ChannelNo, ApplSeqNum, Value: SecurityID BidApplSeqNum OfferApplSeqNum Price TradeQty
-            context.write(new Text(ChannelNo + " " + ApplSeqNum), new Text(BidApplSeqNum + " " + OfferApplSeqNum + " " + Price + " " + TradeQty + " " + tradetime)) ;
+            context.write(new Text(ChannelNo + " " + ApplSeqNum), new Text(BidApplSeqNum + " " + OfferApplSeqNum + " " + Price + " " + TradeQty)) ;
         }
 
     }
