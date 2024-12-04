@@ -1,13 +1,11 @@
 package mapper;
 
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Mapper;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.IOException;
+
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,17 +15,16 @@ public class ActiveOrderJoinMapper extends Mapper<LongWritable, Text, Text, Text
 
     @Override
     protected void setup(Context context) throws IOException, InterruptedException {
-
         // 从 DistributedCache 获取 Preprocessed_order.txt 文件
-        FileSystem fs = FileSystem.get(context.getConfiguration());
-        Path[] localFiles = context.getLocalCacheFiles();
+        Path[] cacheFiles = context.getLocalCacheFiles();
 
-        if (localFiles != null && localFiles.length > 0) {
-            // 假设 Preprocessed_order.txt 文件被分配到本地
-            BufferedReader reader = new BufferedReader(new InputStreamReader(fs.open(localFiles[0])));
+        if (cacheFiles != null && cacheFiles.length > 0) {
+            // 假设你的文件是 part-r-00000
+            Path file = cacheFiles[0];
+            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file.toString())));
             String line;
             while ((line = reader.readLine()) != null) {
-                String[] fields = line.split(" ");
+                String[] fields = line.split("\\s+");
                 String channelNo = fields[0];
                 String applSeqNum = fields[1];
                 String transactionTime = fields[2];
@@ -37,12 +34,14 @@ public class ActiveOrderJoinMapper extends Mapper<LongWritable, Text, Text, Text
             }
 
             reader.close();
+        } else {
+            System.err.println("Distributed cache file not found or not loaded.");
         }
     }
 
     @Override
     protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-        String[] records = value.toString().split(" ");
+        String[] records = value.toString().split("\\s+");
 
         LongWritable ChannelNo = new LongWritable(Long.parseLong(records[0]));
         LongWritable ApplSeqNum = new LongWritable(Long.parseLong(records[1]));
@@ -57,6 +56,9 @@ public class ActiveOrderJoinMapper extends Mapper<LongWritable, Text, Text, Text
         String bidTransactionTime = orderData.get(ChannelNo.toString() + "-" + BidApplSeqNum);
         // 根据 OfferApplSeqNum 查找对应的 TransactionTime
         String offerTransactionTime = orderData.get(ChannelNo.toString() + "-" + OfferApplSeqNum);
+
+        // 输出日志查看是否有找到对应的时间数据
+        System.out.println("Bid Transaction Time: " + bidTransactionTime + ", Offer Transaction Time: " + offerTransactionTime);
 
         // 判断 BidApplSeqNum 和 OfferApplSeqNum 对应的时间，来决定是主动买单还是主动卖单
         if (bidTransactionTime != null && offerTransactionTime != null) {

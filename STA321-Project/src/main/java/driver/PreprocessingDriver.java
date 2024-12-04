@@ -12,14 +12,10 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 public class PreprocessingDriver {
 
     public static void main(String[] args) throws Exception {
-        if (args.length != 3) {
-            System.err.println("Usage: ProcessingDriver <order input path> <trade input path> <output path>");
-            System.exit(-1);
-        }
 
-        String orderInputPath = args[0];  // project/input/am_hq_order_spot.txt
-        String tradeInputPath = args[1];  // project/input/am_hq_trade_spot.txt
-        String outputPath = args[2];      // project/output
+        String orderInputPath = "/data/project/input/am_hq_order_spot.txt";
+        String tradeInputPath = "/data/project/input/am_hq_trade_spot.txt";
+        String outputPath = "/data/project/output";
 
         // 处理 Order 数据的 Job 配置
         Configuration confOrder = new Configuration();
@@ -31,7 +27,7 @@ public class PreprocessingDriver {
         orderJob.setMapOutputValueClass(Text.class);
 
         FileInputFormat.addInputPath(orderJob, new Path(orderInputPath));
-        FileOutputFormat.setOutputPath(orderJob, new Path(outputPath + "/Preprocessed_order"));
+        FileOutputFormat.setOutputPath(orderJob, new Path(outputPath + "/Preprocessed_order.txt"));
 
         // 提交 Order 处理作业
         if (!orderJob.waitForCompletion(true)) {
@@ -48,7 +44,7 @@ public class PreprocessingDriver {
         tradeJob.setMapOutputValueClass(Text.class);
 
         FileInputFormat.addInputPath(tradeJob, new Path(tradeInputPath));
-        FileOutputFormat.setOutputPath(tradeJob, new Path(outputPath + "/Preprocessed_trade"));
+        FileOutputFormat.setOutputPath(tradeJob, new Path(outputPath + "/Preprocessed_trade.txt"));
 
         // 提交 Trade 处理作业
         System.exit(tradeJob.waitForCompletion(true) ? 0 : 1);
