@@ -7,79 +7,88 @@ import java.io.IOException;
 
 public class StockFlowReducer2 extends Reducer<Text, Text, Text, Text> {
 
-    // 变量用于存储各单子类型的累计数据
-    private double superBigBuyAmount = 0.0, superBigBuyQty = 0.0;
-    private double superBigSellAmount = 0.0, superBigSellQty = 0.0;
-    private double bigBuyAmount = 0.0, bigBuyQty = 0.0;
-    private double bigSellAmount = 0.0, bigSellQty = 0.0;
-    private double middleBuyAmount = 0.0, middleBuyQty = 0.0;
-    private double middleSellAmount = 0.0, middleSellQty = 0.0;
-    private double smallBuyAmount = 0.0, smallBuyQty = 0.0;
-    private double smallSellAmount = 0.0, smallSellQty = 0.0;
+    // 累计各类型的成交数据
+    private final double[] buyAmount = new double[4];   // [0: 超大单, 1: 大单, 2: 中单, 3: 小单]
+    private final double[] buyQty = new double[4];
+    private final double[] sellAmount = new double[4];
+    private final double[] sellQty = new double[4];
 
     @Override
     public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
-        // 遍历所有的值，累加成交量和成交额
-        for (Text value : values) {
-            String[] fields = value.toString().split(",");
-            double tradeQty = Double.parseDouble(fields[0].trim());
-            double amount = Double.parseDouble(fields[1].trim());
-            int tradeType = Integer.parseInt(fields[2].trim());  // 1=买单，2=卖单
-
-            // 只需要根据 key（单子类型）来直接累加
-            if (key.toString().equals("超大单")) {
-                if (tradeType == 1) {
-                    superBigBuyAmount += amount;
-                    superBigBuyQty += tradeQty;
-                } else if (tradeType == 2) {
-                    superBigSellAmount += amount;
-                    superBigSellQty += tradeQty;
-                }
-            } else if (key.toString().equals("大单")) {
-                if (tradeType == 1) {
-                    bigBuyAmount += amount;
-                    bigBuyQty += tradeQty;
-                } else if (tradeType == 2) {
-                    bigSellAmount += amount;
-                    bigSellQty += tradeQty;
-                }
-            } else if (key.toString().equals("中单")) {
-                if (tradeType == 1) {
-                    middleBuyAmount += amount;
-                    middleBuyQty += tradeQty;
-                } else if (tradeType == 2) {
-                    middleSellAmount += amount;
-                    middleSellQty += tradeQty;
-                }
-            } else if (key.toString().equals("小单")) {
-                if (tradeType == 1) {
-                    smallBuyAmount += amount;
-                    smallBuyQty += tradeQty;
-                } else if (tradeType == 2) {
-                    smallSellAmount += amount;
-                    smallSellQty += tradeQty;
-                }
-            }
+        String orderType = key.toString();
+        int index = getOrderTypeIndex(orderType);
+        if (index == -1) {
+            return; // 跳过未知类型
         }
 
-        // 计算主力流入，主力流出，主力净流入
-        double mainFlowIn = superBigBuyAmount + bigBuyAmount;  // 主力流入
-        double mainFlowOut = superBigSellAmount + bigSellAmount; // 主力流出
-        double netMainFlow = mainFlowIn - mainFlowOut; // 主力净流入
+        // 遍历每个值，累计买卖单的金额和数量
+        for (Text value : values) {
+            String[] fields = value.toString().split(",");
+            if (fields.length < 4) {
+                continue; // 跳过不完整数据
+            }
 
-        // 输出所有统计结果
+            try {
+                double tradeQty = Double.parseDouble(fields[0].trim());
+                double amount = Double.parseDouble(fields[1].trim());
+                int tradeType = Integer.parseInt(fields[3].trim()); // 1=买单，2=卖单
+
+                if (tradeType == 1) { // 买单
+                    buyAmount[index] += amount;
+                    buyQty[index] += tradeQty;
+                } else if (tradeType == 2) { // 卖单
+                    sellAmount[index] += amount;
+                    sellQty[index] += tradeQty;
+                }
+            } catch (NumberFormatException e) {
+                // 捕获解析异常，跳过错误记录
+                continue;
+            }
+        }
+    }
+
+    @Override
+    protected void cleanup(Context context) throws IOException, InterruptedException {
+        // 计算主力流入、主力流出、主力净流入
+        double mainFlowIn = buyAmount[0] + buyAmount[1];  // 超大单和大单买入金额
+        double mainFlowOut = sellAmount[0] + sellAmount[1]; // 超大单和大单卖出金额
+        double netMainFlow = mainFlowIn - mainFlowOut;    // 主力净流入
+
+        // 按要求的顺序输出统计结果
         String result = String.join(",",
-                String.valueOf(superBigBuyQty), String.valueOf(superBigBuyAmount),
-                String.valueOf(superBigSellQty), String.valueOf(superBigSellAmount),
-                String.valueOf(bigBuyQty), String.valueOf(bigBuyAmount),
-                String.valueOf(bigSellQty), String.valueOf(bigSellAmount),
-                String.valueOf(middleBuyQty), String.valueOf(middleBuyAmount),
-                String.valueOf(middleSellQty), String.valueOf(middleSellAmount),
-                String.valueOf(smallBuyQty), String.valueOf(smallBuyAmount),
-                String.valueOf(smallSellQty), String.valueOf(smallSellAmount),
-                String.valueOf(mainFlowIn), String.valueOf(mainFlowOut), String.valueOf(netMainFlow)
+                String.valueOf(netMainFlow),          // 主力净流入
+                String.valueOf(mainFlowIn),           // 主力流入
+                String.valueOf(mainFlowOut),          // 主力流出
+                String.valueOf(buyQty[0]),            // 超大买单成交量
+                String.valueOf(buyAmount[0]),         // 超大买单成交额
+                String.valueOf(sellQty[0]),           // 超大卖单成交量
+                String.valueOf(sellAmount[0]),        // 超大卖单成交额
+                String.valueOf(buyQty[1]),            // 大买单成交量
+                String.valueOf(buyAmount[1]),         // 大买单成交额
+                String.valueOf(sellQty[1]),           // 大卖单成交量
+                String.valueOf(sellAmount[1]),        // 大卖单成交额
+                String.valueOf(buyQty[2]),            // 中买单成交量
+                String.valueOf(buyAmount[2]),         // 中买单成交额
+                String.valueOf(sellQty[2]),           // 中卖单成交量
+                String.valueOf(sellAmount[2]),        // 中卖单成交额
+                String.valueOf(buyQty[3]),            // 小买单成交量
+                String.valueOf(buyAmount[3]),         // 小买单成交额
+                String.valueOf(sellQty[3]),           // 小卖单成交量
+                String.valueOf(sellAmount[3])         // 小卖单成交额
         );
 
-        context.write(key, new Text(result));
+        // 输出到上下文，Key 可以用 "Result" 或者其他描述性标签
+        context.write(new Text("Result"), new Text(result));
+    }
+
+    // 根据单子类型获取索引
+    private int getOrderTypeIndex(String orderType) {
+        switch (orderType) {
+            case "超大单": return 0;
+            case "大单": return 1;
+            case "中单": return 2;
+            case "小单": return 3;
+            default: return -1;
+        }
     }
 }

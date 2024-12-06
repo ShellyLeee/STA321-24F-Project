@@ -1,6 +1,7 @@
 package driver;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -11,12 +12,73 @@ import mapper.StockFlowMapper2;
 import reducer.StockFlowReducer1;
 import reducer.StockFlowReducer2;
 
+import java.io.IOException;
+
 public class StockFlowDriver {
     public static void main(String[] args) throws Exception {
-        // 配置作业
-        Configuration conf = new Configuration();
+        // 参数校验
+        if (args.length < 2) {
+            System.err.println("Usage: StockFlowDriver <input directory> <output directory>");
+            System.exit(-1);
+        }
 
-        // 第一个作业 - mapper1 -> reducer1
+        // 初始化配置和文件系统
+        Configuration conf = new Configuration();
+        FileSystem fs = FileSystem.get(conf);
+
+        // 定义路径
+        String inputDirectory = args[0];
+        String outputDirectory = args[1];
+        Path inputFilePath = new Path(inputDirectory + "/Active_trade_order.txt");
+        Path tempOutputPath = new Path(outputDirectory + "/job1_temp");
+        Path finalOutputPath = new Path(outputDirectory + "/final");
+
+        // 检查输入文件是否存在
+        if (!fs.exists(inputFilePath)) {
+            System.err.println("Input file Active_trade_order.txt does not exist in directory " + inputDirectory);
+            System.exit(-1);
+        }
+
+        // 清理临时和最终输出目录
+        deletePathIfExists(fs, tempOutputPath);
+        deletePathIfExists(fs, finalOutputPath);
+
+        // 启动 Job1
+        if (!runJob1(conf, inputFilePath, tempOutputPath)) {
+            System.err.println("Job 1 failed!");
+            System.exit(1);
+        }
+
+        // 启动 Job2
+        if (!runJob2(conf, tempOutputPath, finalOutputPath)) {
+            System.err.println("Job 2 failed!");
+            System.exit(1);
+        }
+
+        // 清理 Job1 的临时输出目录
+        deletePathIfExists(fs, tempOutputPath);
+
+        System.out.println("All jobs completed successfully!");
+        System.exit(0);
+    }
+
+    // 删除已存在的路径
+    private static void deletePathIfExists(FileSystem fs, Path path) throws Exception {
+        if (fs.exists(path)) {
+            System.out.println("Deleting existing path: " + path.toString());
+            if (!fs.delete(path, true)) {
+                throw new IOException("Failed to delete path: " + path);
+            }
+            // 检查是否删除成功
+            if (fs.exists(path)) {
+                throw new IOException("Path still exists after deletion: " + path);
+            }
+        }
+    }
+
+    // 运行 Job1
+    private static boolean runJob1(Configuration conf, Path inputFilePath, Path tempOutputPath) throws Exception {
+        System.out.println("Starting Stock Flow Job 1...");
         Job job1 = Job.getInstance(conf, "Stock Flow Job 1");
         job1.setJarByClass(StockFlowDriver.class);
         job1.setMapperClass(StockFlowMapper1.class);
@@ -24,16 +86,21 @@ public class StockFlowDriver {
         job1.setOutputKeyClass(Text.class);
         job1.setOutputValueClass(Text.class);
 
-        // 设置输入输出路径
-        FileInputFormat.addInputPath(job1, new Path(args[0]));
-        FileOutputFormat.setOutputPath(job1, new Path(args[1] + "/temp_output"));
+        FileInputFormat.addInputPath(job1, inputFilePath);
+        FileOutputFormat.setOutputPath(job1, tempOutputPath);
 
-        // 提交第一个作业
-        if (!job1.waitForCompletion(true)) {
-            System.exit(1);
+        boolean success = job1.waitForCompletion(true);
+        if (success) {
+            System.out.println("Job 1 completed successfully.");
         }
+        return success;
+    }
 
-        // 第二个作业 - mapper2 -> reducer2
+    // 运行 Job2
+    private static boolean runJob2(Configuration conf, Path tempOutputPath, Path finalOutputPath) throws Exception {
+        System.out.println("Starting Stock Flow Job 2...");
+        System.out.println("Checking and deleting existing output path for Job2: " + finalOutputPath.toString());
+
         Job job2 = Job.getInstance(conf, "Stock Flow Job 2");
         job2.setJarByClass(StockFlowDriver.class);
         job2.setMapperClass(StockFlowMapper2.class);
@@ -41,11 +108,13 @@ public class StockFlowDriver {
         job2.setOutputKeyClass(Text.class);
         job2.setOutputValueClass(Text.class);
 
-        // 设置输入输出路径
-        FileInputFormat.addInputPath(job2, new Path(args[1] + "/temp_output"));
-        FileOutputFormat.setOutputPath(job2, new Path(args[2]));
+        FileInputFormat.addInputPath(job2, tempOutputPath);
+        FileOutputFormat.setOutputPath(job2, finalOutputPath);
 
-        // 提交第二个作业
-        System.exit(job2.waitForCompletion(true) ? 0 : 1);
+        boolean success = job2.waitForCompletion(true);
+        if (success) {
+            System.out.println("Job 2 completed successfully.");
+        }
+        return success;
     }
 }
