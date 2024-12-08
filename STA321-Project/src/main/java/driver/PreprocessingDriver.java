@@ -3,6 +3,7 @@ package driver;
 import mapper.OrderPreprocessingMapper;
 import mapper.TradePreprocessingMapper;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -16,6 +17,16 @@ public class PreprocessingDriver {
         String orderInputPath = "/data/project/input/am_hq_order_spot.txt";
         String tradeInputPath = "/data/project/input/am_hq_trade_spot.txt";
         String outputPath = "/data/project/output";
+
+        // 删除输出目录中的所有文件
+        Configuration conf = new Configuration();
+        FileSystem fs = FileSystem.get(conf);
+        Path outputDir = new Path(outputPath);
+
+        if (fs.exists(outputDir)) {
+            // 递归删除输出目录下的所有文件
+            fs.delete(outputDir, true);
+        }
 
         // 处理 Order 数据的 Job 配置
         Configuration confOrder = new Configuration();
