@@ -5,7 +5,7 @@ import org.apache.hadoop.mapreduce.Mapper;
 
 import java.io.IOException;
 
-public class StockFlowMapper2 extends Mapper<LongWritable, Text, Text, Text> {
+public class StockFlowMapper2 extends Mapper<LongWritable, Text, IntWritable, Text> {
 
     @Override
     public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
@@ -16,35 +16,35 @@ public class StockFlowMapper2 extends Mapper<LongWritable, Text, Text, Text> {
             return;
         }
 
-        // Key 部分
-        String recordValue = keyValueParts[1]; // Value 部分
-
-        // 按逗号分割 Value 部分
+        // 解析 Value 部分
+        String recordValue = keyValueParts[1];
         String[] fields = recordValue.split(",");
-        if (fields.length < 4) { // 检查字段数量
+        if (fields.length < 5) { // 检查字段数量是否符合 Reducer1 输出格式
             System.err.println("Invalid value: " + recordValue);
             return;
         }
 
         try {
-            double totalTradeQty = Double.parseDouble(fields[0].trim());  // 合并后的成交量
-            double totalAmount = Double.parseDouble(fields[1].trim());    // 合并后的成交额
-            double circulationRatio = Double.parseDouble(fields[3].trim()); // 流通盘占比
-            int tradeType = Integer.parseInt(fields[2].trim());           // 买卖类型（1=买，2=卖）
+            // 解析字段
+            double totalTradeQty = Double.parseDouble(fields[0].trim());  // 成交量
+            double totalAmount = Double.parseDouble(fields[1].trim());   // 成交额
+            double circulationRatio = Double.parseDouble(fields[2].trim()); // 流通盘占比（索引更新为 2）
+            int tradeType = Integer.parseInt(fields[4].trim());          // 买卖类型（1=买，2=卖）
+            int timeWindowID = Integer.parseInt(fields[3].trim());       // 时间窗口 ID（索引更新为 3）
 
             // 判断单子类型
             String orderType = getOrderType(totalTradeQty, totalAmount, circulationRatio);
 
-            // 构建输出的 Value，包含成交量、成交额、流通盘占比和买卖类型
+            // 构建输出的 Value，包含单子类型、成交量、成交额、买卖类型
             String result = String.join(",",
+                    orderType,                      // 单子类型
                     String.valueOf(totalTradeQty),  // 成交量
                     String.valueOf(totalAmount),    // 成交额
-                    String.valueOf(circulationRatio), // 流通盘占比
                     String.valueOf(tradeType)       // 买卖类型
             );
 
-            // 根据单子类型判断输出的 Key
-            context.write(new Text(orderType), new Text(result));
+            // 根据 timeWindowID 输出，Key 类型为 IntWritable
+            context.write(new IntWritable(timeWindowID), new Text(result));
         } catch (NumberFormatException e) {
             System.err.println("Failed to parse value: " + recordValue);
         }

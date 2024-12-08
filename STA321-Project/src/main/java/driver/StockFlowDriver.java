@@ -3,6 +3,7 @@ package driver;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
@@ -29,7 +30,7 @@ public class StockFlowDriver {
         // 定义路径
         String inputDirectory = args[0];
         String outputDirectory = args[1];
-        Path inputFilePath = new Path(inputDirectory + "/Active_trade_order.txt");
+        Path inputFilePath = new Path(inputDirectory + "/Active_order_join.txt");
         Path tempOutputPath = new Path(outputDirectory + "/job1_temp");
         Path finalOutputPath = new Path(outputDirectory + "/final");
 
@@ -56,7 +57,7 @@ public class StockFlowDriver {
         }
 
         // 清理 Job1 的临时输出目录
-        deletePathIfExists(fs, tempOutputPath);
+        //deletePathIfExists(fs, tempOutputPath);
 
         System.out.println("All jobs completed successfully!");
         System.exit(0);
@@ -105,7 +106,9 @@ public class StockFlowDriver {
         job2.setJarByClass(StockFlowDriver.class);
         job2.setMapperClass(StockFlowMapper2.class);
         job2.setReducerClass(StockFlowReducer2.class);
-        job2.setOutputKeyClass(Text.class);
+
+        // 更新 Key 和 Value 类型
+        job2.setOutputKeyClass(IntWritable.class); // 更新为 IntWritable 类型
         job2.setOutputValueClass(Text.class);
 
         FileInputFormat.addInputPath(job2, tempOutputPath);

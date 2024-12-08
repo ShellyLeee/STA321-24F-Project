@@ -5,23 +5,17 @@ import org.apache.hadoop.mapreduce.Reducer;
 
 import java.io.IOException;
 
-public class StockFlowReducer2 extends Reducer<Text, Text, Text, Text> {
-
-    // 累计各类型的成交数据
-    private final double[] buyAmount = new double[4];   // [0: 超大单, 1: 大单, 2: 中单, 3: 小单]
-    private final double[] buyQty = new double[4];
-    private final double[] sellAmount = new double[4];
-    private final double[] sellQty = new double[4];
+public class StockFlowReducer2 extends Reducer<IntWritable, Text, IntWritable, Text> {
 
     @Override
-    public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
-        String orderType = key.toString();
-        int index = getOrderTypeIndex(orderType);
-        if (index == -1) {
-            return; // 跳过未知类型
-        }
+    public void reduce(IntWritable key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
+        // 初始化统计数据
+        double[] buyAmount = new double[4];   // [0: 超大单, 1: 大单, 2: 中单, 3: 小单]
+        double[] buyQty = new double[4];
+        double[] sellAmount = new double[4];
+        double[] sellQty = new double[4];
 
-        // 遍历每个值，累计买卖单的金额和数量
+        // 遍历记录
         for (Text value : values) {
             String[] fields = value.toString().split(",");
             if (fields.length < 4) {
@@ -29,10 +23,18 @@ public class StockFlowReducer2 extends Reducer<Text, Text, Text, Text> {
             }
 
             try {
-                double tradeQty = Double.parseDouble(fields[0].trim());
-                double amount = Double.parseDouble(fields[1].trim());
-                int tradeType = Integer.parseInt(fields[3].trim()); // 1=买单，2=卖单
+                String orderType = fields[0].trim(); // 单子类型
+                double tradeQty = Double.parseDouble(fields[1].trim());  // 成交量
+                double amount = Double.parseDouble(fields[2].trim());    // 成交额
+                int tradeType = Integer.parseInt(fields[3].trim());      // 1=买单, 2=卖单
 
+                // 根据单子类型获取索引
+                int index = getOrderTypeIndex(orderType);
+                if (index == -1) {
+                    continue; // 跳过未知类型
+                }
+
+                // 累计买卖单的金额和数量
                 if (tradeType == 1) { // 买单
                     buyAmount[index] += amount;
                     buyQty[index] += tradeQty;
@@ -41,20 +43,16 @@ public class StockFlowReducer2 extends Reducer<Text, Text, Text, Text> {
                     sellQty[index] += tradeQty;
                 }
             } catch (NumberFormatException e) {
-                // 捕获解析异常，跳过错误记录
-                continue;
+                System.err.println("Failed to parse value: " + value.toString());
             }
         }
-    }
 
-    @Override
-    protected void cleanup(Context context) throws IOException, InterruptedException {
         // 计算主力流入、主力流出、主力净流入
         double mainFlowIn = buyAmount[0] + buyAmount[1];  // 超大单和大单买入金额
         double mainFlowOut = sellAmount[0] + sellAmount[1]; // 超大单和大单卖出金额
         double netMainFlow = mainFlowIn - mainFlowOut;    // 主力净流入
 
-        // 按要求的顺序输出统计结果
+        // 构建输出结果
         String result = String.join(",",
                 String.valueOf(netMainFlow),          // 主力净流入
                 String.valueOf(mainFlowIn),           // 主力流入
@@ -77,8 +75,8 @@ public class StockFlowReducer2 extends Reducer<Text, Text, Text, Text> {
                 String.valueOf(sellAmount[3])         // 小卖单成交额
         );
 
-        // 输出到上下文，Key 可以用 "Result" 或者其他描述性标签
-        context.write(new Text("Result"), new Text(result));
+        // 输出 Key 为 timeWindowID，Value 为统计结果
+        context.write(key, new Text(result));
     }
 
     // 根据单子类型获取索引
