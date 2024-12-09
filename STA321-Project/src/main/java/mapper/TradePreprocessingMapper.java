@@ -32,8 +32,8 @@ public class TradePreprocessingMapper extends Mapper<LongWritable, Text, Text, T
         String ExecType = records[14];
         long tradetime = new Long(Long.parseLong(records[15]));
 
-        // 仅处理 "F" 类型的成交单，并且筛选出 SecurityID 为 "002436"
-        if (ExecType.equals("F") && SecurityID.equals("002436")) {
+        // 仅处理 "F" 类型的成交单，并且筛选出 SecurityID 为 "000001"
+        if (ExecType.equals("F") && SecurityID.equals("000001")) {
             // 筛选出时间在 9:30-11:30 以及 13:00-15:00 时间段内的交易记录
             if ((tradetime >= MORNING_START && tradetime <= MORNING_END) || (tradetime >= AFTERNOON_START && tradetime <= AFTERNOON_END)) {
 

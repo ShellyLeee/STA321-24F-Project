@@ -20,7 +20,19 @@ public class ActiveOrderJoinDriver {
 
         // 创建Hadoop Job配置
         Configuration conf = new Configuration();
+
+        // 设置任务超时时间为20分钟
+        conf.setLong("mapreduce.task.timeout", 1200000);
+
+        // 设置Map任务内存为4GB
+        conf.setInt("mapreduce.map.memory.mb", 4096);
+        conf.set("mapreduce.map.java.opts", "-Xmx3072m");  // 设置JVM堆内存为3GB
+
+        // 设置YARN容器资源为8GB
+        conf.setInt("yarn.nodemanager.resource.memory-mb", 8192);
+
         Job job = Job.getInstance(conf, "Active Order and Trade Join");
+
 
         // 设置输入输出格式和类
         job.setJarByClass(ActiveOrderJoinDriver.class);

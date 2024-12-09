@@ -17,28 +17,15 @@ import java.io.IOException;
 
 public class StockFlowDriver {
     public static void main(String[] args) throws Exception {
-        // 参数校验
-        if (args.length < 2) {
-            System.err.println("Usage: StockFlowDriver <input directory> <output directory>");
-            System.exit(-1);
-        }
 
         // 初始化配置和文件系统
         Configuration conf = new Configuration();
         FileSystem fs = FileSystem.get(conf);
 
         // 定义路径
-        String inputDirectory = args[0];
-        String outputDirectory = args[1];
-        Path inputFilePath = new Path(inputDirectory + "/Active_order_join.txt");
-        Path tempOutputPath = new Path(outputDirectory + "/job1_temp");
-        Path finalOutputPath = new Path(outputDirectory + "/final");
-
-        // 检查输入文件是否存在
-        if (!fs.exists(inputFilePath)) {
-            System.err.println("Input file Active_trade_order.txt does not exist in directory " + inputDirectory);
-            System.exit(-1);
-        }
+        Path inputFilePath = new Path("/data/project/output/Active_trade_order.txt");
+        Path tempOutputPath = new Path( "/data/project/output/job1_temp");
+        Path finalOutputPath = new Path("/data/project/output/final");
 
         // 清理临时和最终输出目录
         deletePathIfExists(fs, tempOutputPath);
