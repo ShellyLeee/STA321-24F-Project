@@ -12,12 +12,13 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import java.io.IOException;
+import java.net.URI;
 
 public class FixedPathDriver {
 
     // 固定输入和输出路径
-    private static final String ORDER_INPUT_PATH = "/data/project/example_am_hq_order_spot.txt";
-    private static final String TRADE_INPUT_PATH = "/data/project/example_am_hq_trade_spot.txt";
+    private static final String ORDER_INPUT_PATH = "/data/project/input/am_hq_order_spot.txt";
+    private static final String TRADE_INPUT_PATH = "/data/project/input/am_hq_trade_spot.txt";
     private static final String OUTPUT_BASE_PATH = "/data/project/output";
     private static final String PREPROCESSED_ORDER_PATH = OUTPUT_BASE_PATH + "/Preprocessed_order.txt";
     private static final String PREPROCESSED_TRADE_PATH = OUTPUT_BASE_PATH + "/Preprocessed_trade.txt";
@@ -28,6 +29,17 @@ public class FixedPathDriver {
     public static void main(String[] args) throws Exception {
         // 初始化配置和文件系统
         Configuration conf = new Configuration();
+
+        // 设置任务超时时间为20分钟
+        conf.setLong("mapreduce.task.timeout", 1200000);
+
+        // 设置Map任务内存为4GB
+        conf.setInt("mapreduce.map.memory.mb", 4096);
+        conf.set("mapreduce.map.java.opts", "-Xmx3072m");  // 设置JVM堆内存为3GB
+
+        // 设置YARN容器资源为8GB
+        conf.setInt("yarn.nodemanager.resource.memory-mb", 8192);
+
         FileSystem fs = FileSystem.get(conf);
 
         // 确保输出路径不存在以避免冲突
@@ -123,6 +135,8 @@ public class FixedPathDriver {
         FileInputFormat.addInputPath(job, new Path(orderInput));
         FileInputFormat.addInputPath(job, new Path(tradeInput));
         FileOutputFormat.setOutputPath(job, new Path(outputPath));
+
+        job.addCacheFile(new URI("/data/project/output/Preprocessed_order.txt/part-r-00000#part-r-00000"));
 
         boolean success = job.waitForCompletion(true);
         if (success) {
