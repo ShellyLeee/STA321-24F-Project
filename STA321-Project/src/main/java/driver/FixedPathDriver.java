@@ -37,19 +37,13 @@ public class FixedPathDriver {
         // 设置任务超时时间为20分钟
         conf.setLong("mapreduce.task.timeout", 1200000);
 
-        // 设置 Map 任务数，假设每个 Map 任务处理大约 256MB 数据
-        conf.setInt("mapreduce.job.maps", 6);  // 根据数据量和节点数量调整
-
-        // 设置 Reduce 任务数
-        conf.setInt("mapreduce.job.reduces", 8);  // 适当增加 Reduce 任务数，尤其是进行 Join 或聚合操作时
-
-
         // 设置Map任务内存为4GB
-        conf.setInt("mapreduce.map.memory.mb", 8192);
-        conf.set("mapreduce.map.java.opts", "-Xmx6144m");  // 设置JVM堆内存为3GB
+        conf.setInt("mapreduce.map.memory.mb", 4096);
+        conf.set("mapreduce.map.java.opts", "-Xmx3072m");  // 设置JVM堆内存为3GB
 
         // 设置YARN容器资源为8GB
-        conf.setInt("yarn.nodemanager.resource.memory-mb", 16384);
+        conf.setInt("yarn.nodemanager.resource.memory-mb", 8192);
+
 
         FileSystem fs = FileSystem.get(conf);
 
