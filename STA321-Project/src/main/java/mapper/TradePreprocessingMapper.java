@@ -9,7 +9,7 @@ import java.io.IOException;
 public class TradePreprocessingMapper extends Mapper<LongWritable, Text, Text, Text> {
 
     // 时间窗口大小：自定义
-    private final long TIME_WINDOW = 10; // 10分钟
+    private final long TIME_WINDOW = 20; // 10分钟
 
     // 时间段的起始和结束时间戳（即 9:30-11:30 和 13:00-15:00）
     private final long MORNING_START = 20190102093000000L; // 2019-01-02 09:30:00.000
@@ -74,7 +74,7 @@ public class TradePreprocessingMapper extends Mapper<LongWritable, Text, Text, T
             timeWindowID = (currentTimeInMinutes - morningStartInMinutes) / TIME_WINDOW + 1;
         } else if (currentTimeInMinutes >= afternoonStartInMinutes && currentTimeInMinutes <= getTimeInMinutes(AFTERNOON_END)) {
             // 下午 13:00 - 15:00 的时间段，计算属于哪个窗口
-            timeWindowID = (currentTimeInMinutes - afternoonStartInMinutes) / TIME_WINDOW + 13; // 下午的时间窗口ID从13开始
+            timeWindowID = (currentTimeInMinutes - afternoonStartInMinutes) / TIME_WINDOW + 7; // 下午的时间窗口ID从13开始
         }
 
         return timeWindowID;
