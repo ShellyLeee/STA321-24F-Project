@@ -1,6 +1,8 @@
 package driver;
 
 import mapper.*;
+import org.apache.hadoop.mapreduce.lib.input.MultipleInputs;
+import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import reducer.*;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -17,8 +19,10 @@ import java.net.URI;
 public class FixedPathDriver {
 
     // 固定输入和输出路径
-    private static final String ORDER_INPUT_PATH = "/data/project/input/am_hq_order_spot.txt";
-    private static final String TRADE_INPUT_PATH = "/data/project/input/am_hq_trade_spot.txt";
+    private static final String ORDER_INPUT_PATH1 = "/data/project/input/am_hq_order_spot.txt";
+    private static final String ORDER_INPUT_PATH2 = "/data/project/input/pm_hq_order_spot.txt";
+    private static final String TRADE_INPUT_PATH1 = "/data/project/input/am_hq_trade_spot.txt";
+    private static final String TRADE_INPUT_PATH2 = "/data/project/input/pm_hq_trade_spot.txt";
     private static final String OUTPUT_BASE_PATH = "/data/project/output";
     private static final String PREPROCESSED_ORDER_PATH = OUTPUT_BASE_PATH + "/Preprocessed_order.txt";
     private static final String PREPROCESSED_TRADE_PATH = OUTPUT_BASE_PATH + "/Preprocessed_trade.txt";
@@ -33,12 +37,19 @@ public class FixedPathDriver {
         // 设置任务超时时间为20分钟
         conf.setLong("mapreduce.task.timeout", 1200000);
 
+        // 设置 Map 任务数，假设每个 Map 任务处理大约 256MB 数据
+        conf.setInt("mapreduce.job.maps", 6);  // 根据数据量和节点数量调整
+
+        // 设置 Reduce 任务数
+        conf.setInt("mapreduce.job.reduces", 8);  // 适当增加 Reduce 任务数，尤其是进行 Join 或聚合操作时
+
+
         // 设置Map任务内存为4GB
-        conf.setInt("mapreduce.map.memory.mb", 4096);
-        conf.set("mapreduce.map.java.opts", "-Xmx3072m");  // 设置JVM堆内存为3GB
+        conf.setInt("mapreduce.map.memory.mb", 8192);
+        conf.set("mapreduce.map.java.opts", "-Xmx6144m");  // 设置JVM堆内存为3GB
 
         // 设置YARN容器资源为8GB
-        conf.setInt("yarn.nodemanager.resource.memory-mb", 8192);
+        conf.setInt("yarn.nodemanager.resource.memory-mb", 16384);
 
         FileSystem fs = FileSystem.get(conf);
 
@@ -50,12 +61,12 @@ public class FixedPathDriver {
         ensurePathDoesNotExist(fs, FINAL_OUTPUT_PATH);
 
         // 执行各阶段作业
-        if (!runOrderPreprocessing(conf, ORDER_INPUT_PATH, PREPROCESSED_ORDER_PATH)) {
+        if (!runOrderPreprocessing(conf, ORDER_INPUT_PATH1, ORDER_INPUT_PATH2, PREPROCESSED_ORDER_PATH)) {
             System.err.println("Order preprocessing failed.");
             System.exit(1);
         }
 
-        if (!runTradePreprocessing(conf, TRADE_INPUT_PATH, PREPROCESSED_TRADE_PATH)) {
+        if (!runTradePreprocessing(conf, TRADE_INPUT_PATH1, TRADE_INPUT_PATH2, PREPROCESSED_TRADE_PATH)) {
             System.err.println("Trade preprocessing failed.");
             System.exit(1);
         }
@@ -86,7 +97,7 @@ public class FixedPathDriver {
     }
 
     // Order预处理作业
-    private static boolean runOrderPreprocessing(Configuration conf, String inputPath, String outputPath) throws Exception {
+    private static boolean runOrderPreprocessing(Configuration conf, String inputPath1, String inputPath2, String outputPath) throws Exception {
         System.out.println("Starting Order Preprocessing...");
         Job job = Job.getInstance(conf, "Order Preprocessing");
         job.setJarByClass(FixedPathDriver.class);
@@ -94,7 +105,8 @@ public class FixedPathDriver {
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
 
-        FileInputFormat.addInputPath(job, new Path(inputPath));
+        MultipleInputs.addInputPath(job, new Path(inputPath1), TextInputFormat.class, OrderPreprocessingMapper.class);
+        MultipleInputs.addInputPath(job, new Path(inputPath2), TextInputFormat.class, OrderPreprocessingMapper.class);
         FileOutputFormat.setOutputPath(job, new Path(outputPath));
 
         boolean success = job.waitForCompletion(true);
@@ -105,7 +117,7 @@ public class FixedPathDriver {
     }
 
     // Trade预处理作业
-    private static boolean runTradePreprocessing(Configuration conf, String inputPath, String outputPath) throws Exception {
+    private static boolean runTradePreprocessing(Configuration conf, String inputPath1, String inputPath2, String outputPath) throws Exception {
         System.out.println("Starting Trade Preprocessing...");
         Job job = Job.getInstance(conf, "Trade Preprocessing");
         job.setJarByClass(FixedPathDriver.class);
@@ -113,7 +125,8 @@ public class FixedPathDriver {
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
 
-        FileInputFormat.addInputPath(job, new Path(inputPath));
+        MultipleInputs.addInputPath(job, new Path(inputPath1), TextInputFormat.class, TradePreprocessingMapper.class);
+        MultipleInputs.addInputPath(job, new Path(inputPath2), TextInputFormat.class, TradePreprocessingMapper.class);
         FileOutputFormat.setOutputPath(job, new Path(outputPath));
 
         boolean success = job.waitForCompletion(true);

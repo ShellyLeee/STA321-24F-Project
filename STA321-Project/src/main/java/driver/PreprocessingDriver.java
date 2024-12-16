@@ -7,15 +7,18 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.MultipleInputs;
+import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 public class PreprocessingDriver {
 
     public static void main(String[] args) throws Exception {
 
-        String orderInputPath = "/data/project/input/am_hq_order_spot.txt";
-        String tradeInputPath = "/data/project/input/am_hq_trade_spot.txt";
+        String orderInputPath1 = "/data/project/input/am_hq_order_spot.txt";
+        String orderInputPath2 = "/data/project/input/pm_hq_order_spot.txt";
+        String tradeInputPath1 = "/data/project/input/am_hq_trade_spot.txt";
+        String tradeInputPath2 = "/data/project/input/pm_hq_trade_spot.txt";
         String outputPath = "/data/project/output";
 
         // 删除输出目录中的所有文件
@@ -37,7 +40,11 @@ public class PreprocessingDriver {
         orderJob.setMapOutputKeyClass(Text.class);
         orderJob.setMapOutputValueClass(Text.class);
 
-        FileInputFormat.addInputPath(orderJob, new Path(orderInputPath));
+        // 早上order数据处理
+        MultipleInputs.addInputPath(orderJob, new Path(orderInputPath1), TextInputFormat.class, OrderPreprocessingMapper.class);
+        // 下午order数据处理
+        MultipleInputs.addInputPath(orderJob, new Path(orderInputPath2), TextInputFormat.class, OrderPreprocessingMapper.class);
+
         FileOutputFormat.setOutputPath(orderJob, new Path(outputPath + "/Preprocessed_order.txt"));
 
         // 提交 Order 处理作业
@@ -54,7 +61,11 @@ public class PreprocessingDriver {
         tradeJob.setMapOutputKeyClass(Text.class);
         tradeJob.setMapOutputValueClass(Text.class);
 
-        FileInputFormat.addInputPath(tradeJob, new Path(tradeInputPath));
+        // 早上trade数据处理
+        MultipleInputs.addInputPath(orderJob, new Path(tradeInputPath1), TextInputFormat.class, TradePreprocessingMapper.class);
+        // 下午trade数据处理
+        MultipleInputs.addInputPath(orderJob, new Path(tradeInputPath2), TextInputFormat.class, TradePreprocessingMapper.class);
+
         FileOutputFormat.setOutputPath(tradeJob, new Path(outputPath + "/Preprocessed_trade.txt"));
 
         // 提交 Trade 处理作业
