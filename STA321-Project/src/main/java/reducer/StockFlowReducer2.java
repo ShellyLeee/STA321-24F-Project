@@ -5,7 +5,10 @@ import org.apache.hadoop.mapreduce.Reducer;
 
 import java.io.IOException;
 
-public class StockFlowReducer2 extends Reducer<IntWritable, Text, IntWritable, Text> {
+public class StockFlowReducer2 extends Reducer<IntWritable, Text, Text, Text> {
+
+    // 标记表头是否已输出
+    private boolean isHeaderWritten = false;
 
     @Override
     public void reduce(IntWritable key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
@@ -75,8 +78,17 @@ public class StockFlowReducer2 extends Reducer<IntWritable, Text, IntWritable, T
                 String.valueOf(sellAmount[3])         // 小卖单成交额
         );
 
+        // 如果是第一次输出，则添加表头
+        if (!isHeaderWritten) {
+            String header = "主力净流入,主力流入,主力流出,超大买单成交量,超大买单成交额,超大卖单成交量,超大卖单成交额,"
+                    + "大买单成交量,大买单成交额,大卖单成交量,大卖单成交额,中买单成交量,中买单成交额,中卖单成交量,中卖单成交额,"
+                    + "小买单成交量,小买单成交额,小卖单成交量,小卖单成交额";
+            context.write(new Text(header), new Text("," + "时间窗口id"));  // 输出表头
+            isHeaderWritten = true;  // 标记表头已输出
+        }
+
         // 输出 Key 为 timeWindowID，Value 为统计结果
-        context.write(key, new Text(result));
+        context.write(new Text(result), new Text("," + key.toString()));
     }
 
     // 根据单子类型获取索引

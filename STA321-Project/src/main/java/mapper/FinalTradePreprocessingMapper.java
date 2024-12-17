@@ -9,7 +9,7 @@ import java.io.IOException;
 public class FinalTradePreprocessingMapper extends Mapper<LongWritable, Text, Text, Text> {
 
     // 时间窗口大小：自定义
-    private final long TIME_WINDOW = 20; // 10分钟
+    private final long TIME_WINDOW = 10; // 10分钟
 
     // 时间段的起始和结束时间戳（即 9:30-11:30 和 13:00-15:00）
     private final long MORNING_START = 20190102093000000L; // 2019-01-02 09:30:00.000
@@ -27,8 +27,8 @@ public class FinalTradePreprocessingMapper extends Mapper<LongWritable, Text, Te
         LongWritable ApplSeqNum = new LongWritable(Long.parseLong(records[7]));
 
         String SecurityID = records[8];
-        String BidApplSeqNum = records[10];
-        String OfferApplSeqNum = records[11];
+        long BidApplSeqNum = Long.parseLong(records[10]);
+        long OfferApplSeqNum = Long.parseLong(records[11]);
         String Price = records[12];
         String TradeQty = records[13];
         String ExecType = records[14];
@@ -37,12 +37,12 @@ public class FinalTradePreprocessingMapper extends Mapper<LongWritable, Text, Te
         // 仅处理 "F" 类型的成交单，并且筛选出 SecurityID 为 "000001"
         if (ExecType.equals("F") && SecurityID.equals("000001")) {
             // 筛选出时间在 9:30-11:30 以及 13:00-15:00 时间段内的交易记录
-            if ((tradetime >= MORNING_START && tradetime <= MORNING_END) || (tradetime >= AFTERNOON_START && tradetime < AFTERNOON_END)) {
+            if ((tradetime >= MORNING_START && tradetime <= MORNING_END) || (tradetime >= AFTERNOON_START && tradetime <= AFTERNOON_END)) {
 
                 // 计算该交易时间所属的 timeWindowID
                 long timeWindowID = calculateTimeWindowID(tradetime);
-                int compareResult = BidApplSeqNum.compareTo(OfferApplSeqNum);
-                TradeType = (compareResult >= 0) ? 1 : 2; // 1 为主动买，2 为主动卖
+
+                TradeType = (BidApplSeqNum > OfferApplSeqNum) ? 1 : 2; // 1 为主动买，2 为主动卖
 
                 // 输出：key 为 ChannelNo 和 ApplSeqNum，value 为成交单信息和计算的 timeWindowID
                 context.write(new Text(ChannelNo + "-" + ApplSeqNum), new Text(BidApplSeqNum + " " + OfferApplSeqNum + " " + Price + " " + TradeQty + " " + tradetime + " " + timeWindowID + " " + TradeType));
@@ -76,9 +76,11 @@ public class FinalTradePreprocessingMapper extends Mapper<LongWritable, Text, Te
         if (currentTimeInMinutes >= morningStartInMinutes && currentTimeInMinutes <= getTimeInMinutes(MORNING_END)) {
             // 早上 9:30 - 11:30 的时间段，计算属于哪个窗口
             timeWindowID = (currentTimeInMinutes - morningStartInMinutes) / TIME_WINDOW + 1;
-        } else if (currentTimeInMinutes >= afternoonStartInMinutes && currentTimeInMinutes <= getTimeInMinutes(AFTERNOON_END)) {
+        } else if (currentTimeInMinutes >= afternoonStartInMinutes && currentTimeInMinutes < getTimeInMinutes(AFTERNOON_END)) {
             // 下午 13:00 - 15:00 的时间段，计算属于哪个窗口
-            timeWindowID = (currentTimeInMinutes - afternoonStartInMinutes) / TIME_WINDOW + 7; // 下午的时间窗口ID从13开始
+            timeWindowID = (currentTimeInMinutes - afternoonStartInMinutes) / TIME_WINDOW + 13; // 下午的时间窗口ID从13开始
+        } else if (currentTimeInMinutes == getTimeInMinutes(AFTERNOON_END)) {
+            timeWindowID = (currentTimeInMinutes - afternoonStartInMinutes) / TIME_WINDOW + 12;
         }
 
         return timeWindowID;
