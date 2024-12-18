@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>股票交易数据可视化</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>股票交易数据可视化</h1>
+    <label for="timeWindowId">选择时间窗口 ID:</label>
+    <select id="timeWindowId"></select>
+    <button id="updateButton">更新数据</button>
+    <h2>数据展示</h2>
+    <table class="data-table" id="dataDisplay">
+        <tr>
+            <th>数据</th>
+        </tr>
+    </table>
+    <h2>饼状图</h2>
+    <div class="chart">
+        <canvas id="myPieChart"></canvas>
+    </div>
+    <h2>折线图</h2>
+    <div class="chart">
+        <canvas id="myLineChart"></canvas>
+    </div>
+    <h2>买单和卖单柱状图</h2>
+    <div class="chart-container">
+        <div class="chart">
+            <canvas id="myBarChart"></canvas>
+        </div>
+        <div class="chart">
+            <canvas id="myBarChartSell"></canvas>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
