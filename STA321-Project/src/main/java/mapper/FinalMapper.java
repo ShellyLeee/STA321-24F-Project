@@ -66,15 +66,40 @@ public class FinalMapper extends Mapper<LongWritable, Text, Text, Text> {
                 (tradeTime >= AFTERNOON_START && tradeTime <= AFTERNOON_END);
     }
 
-    // 计算时间窗口ID
-    private long calculateTimeWindowID(long tradeTime) {
-        int minutes = (int) ((tradeTime / 1000000) % 100) * 60 + (int) ((tradeTime / 10000) % 100);
 
-        if (tradeTime >= MORNING_START && tradeTime <= MORNING_END) {
-            return ((minutes - 570) / TIME_WINDOW) + 1; // 9:30 => 570分钟
-        } else if (tradeTime >= AFTERNOON_START && tradeTime <= AFTERNOON_END) {
-            return ((minutes - 780) / TIME_WINDOW) + 13; // 13:00 => 780分钟
+    // 将时间字符串（yyyyMMddHHmmssSSS）转化为分钟
+    public static int getTimeInMinutes(long tradetime) {
+        // 转换 tradetime
+        String timeStr = String.valueOf(tradetime).substring(8, 12); // 提取 "HHmm"
+        int hour = Integer.parseInt(timeStr.substring(0, 2));
+        int minute = Integer.parseInt(timeStr.substring(2, 4));
+
+        // 将时间转换为从午夜开始的分钟数
+        return hour * 60 + minute;
+    }
+
+    // 计算时间窗口ID
+    public long calculateTimeWindowID(long tradetime) {
+        // 获取输入时间的分钟数
+        int currentTimeInMinutes = getTimeInMinutes(tradetime);
+
+        // 获取早上和下午的开始时间的分钟数
+        int morningStartInMinutes = getTimeInMinutes(MORNING_START);
+        int afternoonStartInMinutes = getTimeInMinutes(AFTERNOON_START);
+
+        // 判断当前时间是早上还是下午，并计算属于哪个时间窗口
+        long timeWindowID = -1;
+
+        if (currentTimeInMinutes >= morningStartInMinutes && currentTimeInMinutes <= getTimeInMinutes(MORNING_END)) {
+            // 早上 9:30 - 11:30 的时间段，计算属于哪个窗口
+            timeWindowID = (currentTimeInMinutes - morningStartInMinutes) / TIME_WINDOW + 1;
+        } else if (currentTimeInMinutes >= afternoonStartInMinutes && currentTimeInMinutes < getTimeInMinutes(AFTERNOON_END)) {
+            // 下午 13:00 - 15:00 的时间段，计算属于哪个窗口
+            timeWindowID = (currentTimeInMinutes - afternoonStartInMinutes) / TIME_WINDOW + 13; // 下午的时间窗口ID从13开始
+        } else if (currentTimeInMinutes == getTimeInMinutes(AFTERNOON_END)) {
+            timeWindowID = (currentTimeInMinutes - afternoonStartInMinutes) / TIME_WINDOW + 12;
         }
-        return -1; // 非法时间
+
+        return timeWindowID;
     }
 }
