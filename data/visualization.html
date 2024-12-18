@@ -8,18 +8,41 @@
 </head>
 <body>
     <h1>股票交易数据可视化</h1>
-    <h2>全天股票数据折线图</h2>
-    <div class="chart">
-        <canvas id="myLineChart"></canvas>
+    <div class="chart-container">
+        <div class="chart">
+            <h2>全天股票数据折线图</h2>
+            <canvas id="myLineChart"></canvas>
+        </div>
+        <div class="data-display">
+            <h2>选择时间窗口</h2>
+            <label for="timeWindowId">选择时间窗口 ID:</label>
+            <select id="timeWindowId"></select>
+            <button id="updateButton">更新数据</button>
+        </div>
     </div>
-    <h2>选择时间窗口</h2>
-    <label for="timeWindowId">选择时间窗口 ID:</label>
-    <select id="timeWindowId"></select>
-    <button id="updateButton">更新数据</button>
     <h2>数据展示</h2>
     <table class="data-table" id="dataDisplay">
         <tr>
-            <th>数据</th>
+            <th>主力净流入</th>
+            <th>主力流入</th>
+            <th>主力流出</th>
+            <th>超大买单成交量</th>
+            <th>超大买单成交额</th>
+            <th>超大卖单成交量</th>
+            <th>超大卖单成交额</th>
+            <th>大买单成交量</th>
+            <th>大买单成交额</th>
+            <th>大卖单成交量</th>
+            <th>大卖单成交额</th>
+            <th>中买单成交量</th>
+            <th>中买单成交额</th>
+            <th>中卖单成交量</th>
+            <th>中卖单成交额</th>
+            <th>小买单成交量</th>
+            <th>小买单成交额</th>
+            <th>小卖单成交量</th>
+            <th>小卖单成交额</th>
+            <th>时间窗口id</th>
         </tr>
     </table>
     <h2>饼状图</h2>

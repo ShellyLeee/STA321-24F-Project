@@ -38,14 +38,22 @@ function updateCharts(timeWindowId) {
     const rowData = data[timeWindowId];
     if (rowData) {
         // 更新数据展示
-        dataTable.innerHTML = '';
-        rowData.forEach(value => {
-            const row = document.createElement('tr');
-            const cell = document.createElement('td');
-            cell.textContent = value;
-            row.appendChild(cell);
-            dataTable.appendChild(row);
-        });
+
+        const rows = dataTable.getElementsByTagName('tr');
+        while (rows.length > 1) { 
+            dataTable.deleteRow(1); 
+        }
+        const newRow = document.createElement('tr');
+        newRow.innerHTML = `<td>${rowData[0]}</td><td>${rowData[1]}</td><td>${rowData[2]}</td>
+                            <td>${rowData[3]}</td><td>${rowData[4]}</td>
+                            <td>${rowData[5]}</td><td>${rowData[6]}</td>
+                            <td>${rowData[7]}</td><td>${rowData[8]}</td>
+                            <td>${rowData[9]}</td><td>${rowData[10]}</td>
+                            <td>${rowData[11]}</td><td>${rowData[12]}</td>
+                            <td>${rowData[13]}</td><td>${rowData[14]}</td>
+                            <td>${rowData[15]}</td><td>${rowData[16]}</td>
+                            <td>${rowData[17]}</td><td>${rowData[18]}</td><td>${rowData[19]}</td>`;
+        dataTable.appendChild(newRow);
 
         document.getElementById('mainNetInflow').textContent = rowData[0];
         document.getElementById('mainInflow').textContent = rowData[1];

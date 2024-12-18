@@ -96,14 +96,23 @@ public class CsvToHtml {
             writer.write("    const rowData = data[timeWindowId];\n");
             writer.write("    if (rowData) {\n");
             writer.write("        // 更新数据展示\n");
-            writer.write("        dataTable.innerHTML = '';\n");
-            writer.write("        rowData.forEach(value => {\n");
-            writer.write("            const row = document.createElement('tr');\n");
-            writer.write("            const cell = document.createElement('td');\n");
-            writer.write("            cell.textContent = value;\n");
-            writer.write("            row.appendChild(cell);\n");
-            writer.write("            dataTable.appendChild(row);\n");
-            writer.write("        });\n");
+            writer.write("\n");
+            
+            writer.write("        const rows = dataTable.getElementsByTagName('tr');\n");
+            writer.write("        while (rows.length > 1) { \n");
+            writer.write("            dataTable.deleteRow(1); \n");
+            writer.write("        }\n");
+            writer.write("        const newRow = document.createElement('tr');\n");
+            writer.write("        newRow.innerHTML = `<td>${rowData[0]}</td><td>${rowData[1]}</td><td>${rowData[2]}</td>\n");
+            writer.write("                            <td>${rowData[3]}</td><td>${rowData[4]}</td>\n");
+            writer.write("                            <td>${rowData[5]}</td><td>${rowData[6]}</td>\n");
+            writer.write("                            <td>${rowData[7]}</td><td>${rowData[8]}</td>\n");
+            writer.write("                            <td>${rowData[9]}</td><td>${rowData[10]}</td>\n");
+            writer.write("                            <td>${rowData[11]}</td><td>${rowData[12]}</td>\n");
+            writer.write("                            <td>${rowData[13]}</td><td>${rowData[14]}</td>\n");
+            writer.write("                            <td>${rowData[15]}</td><td>${rowData[16]}</td>\n");
+            writer.write("                            <td>${rowData[17]}</td><td>${rowData[18]}</td><td>${rowData[19]}</td>`;\n");
+            writer.write("        dataTable.appendChild(newRow);\n");
             writer.write("\n");
 
             writer.write("        document.getElementById('mainNetInflow').textContent = rowData[0];\n");
@@ -283,22 +292,44 @@ public class CsvToHtml {
             writer.write("<body>\n");
             writer.write("    <h1>股票交易数据可视化</h1>\n");
 
-            writer.write("    <h2>全天股票数据折线图</h2>\n");
-            writer.write("    <div class=\"chart\">\n");
-            writer.write("        <canvas id=\"myLineChart\"></canvas>\n");
+            // 添加全天股票数据展示、下拉框和按钮
+            writer.write("    <div class=\"chart-container\">\n");
+            writer.write("        <div class=\"chart\">\n");
+            writer.write("            <h2>全天股票数据折线图</h2>\n");
+            writer.write("            <canvas id=\"myLineChart\"></canvas>\n");
+            writer.write("        </div>\n");
+            writer.write("        <div class=\"data-display\">\n");
+            writer.write("            <h2>选择时间窗口</h2>\n");
+            writer.write("            <label for=\"timeWindowId\">选择时间窗口 ID:</label>\n");
+            writer.write("            <select id=\"timeWindowId\"></select>\n");
+            writer.write("            <button id=\"updateButton\">更新数据</button>\n");
+            writer.write("        </div>\n");
             writer.write("    </div>\n");
-
-            // 添加下拉框和按钮
-            writer.write("    <h2>选择时间窗口</h2>\n");
-            writer.write("    <label for=\"timeWindowId\">选择时间窗口 ID:</label>\n");
-            writer.write("    <select id=\"timeWindowId\"></select>\n");
-            writer.write("    <button id=\"updateButton\">更新数据</button>\n");
 
             // 数据展示
             writer.write("    <h2>数据展示</h2>\n");
             writer.write("    <table class=\"data-table\" id=\"dataDisplay\">\n");
             writer.write("        <tr>\n");
-            writer.write("            <th>数据</th>\n");
+            writer.write("            <th>主力净流入</th>\n");
+            writer.write("            <th>主力流入</th>\n");
+            writer.write("            <th>主力流出</th>\n");
+            writer.write("            <th>超大买单成交量</th>\n");
+            writer.write("            <th>超大买单成交额</th>\n");
+            writer.write("            <th>超大卖单成交量</th>\n");
+            writer.write("            <th>超大卖单成交额</th>\n");
+            writer.write("            <th>大买单成交量</th>\n");
+            writer.write("            <th>大买单成交额</th>\n");
+            writer.write("            <th>大卖单成交量</th>\n");
+            writer.write("            <th>大卖单成交额</th>\n");
+            writer.write("            <th>中买单成交量</th>\n");
+            writer.write("            <th>中买单成交额</th>\n");
+            writer.write("            <th>中卖单成交量</th>\n");
+            writer.write("            <th>中卖单成交额</th>\n");
+            writer.write("            <th>小买单成交量</th>\n");
+            writer.write("            <th>小买单成交额</th>\n");
+            writer.write("            <th>小卖单成交量</th>\n");
+            writer.write("            <th>小卖单成交额</th>\n");
+            writer.write("            <th>时间窗口id</th>\n");
             writer.write("        </tr>\n");
             writer.write("    </table>\n");
 

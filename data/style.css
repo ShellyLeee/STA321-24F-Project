@@ -1,35 +1,7 @@
-body {
-    font-family: Arial, sans-serif;
-}
-
-.chart-container {
-    display: flex;
-    justify-content: space-around;
-    margin: 20px 0;
-}
-
-.chart {
-    width: 45%;
-}
-
-.data-table {
-    width: 80%;
-    margin: auto;
-    border-collapse: collapse;
-}
-
-.data-table th, .data-table td {
-    border: 1px solid #ccc;
-    padding: 8px;
-    text-align: center;
-}
-
-.chart-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.data-display {
-    margin-left: 20px;
-}
+body { font-family: Arial, sans-serif; }
+.chart-container { display: flex; justify-content: space-around; margin: 20px 0; }
+.chart { width: 45%; }
+.data-table { width: 80%; margin: auto; border-collapse: collapse; }
+.data-table th, .data-table td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+.chart-container { display: flex; justify-content: space-between; align-items: center; }
+.data-display { margin-left: 20px; }
