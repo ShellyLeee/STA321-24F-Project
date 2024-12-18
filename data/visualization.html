@@ -8,6 +8,11 @@
 </head>
 <body>
     <h1>股票交易数据可视化</h1>
+    <h2>全天股票数据折线图</h2>
+    <div class="chart">
+        <canvas id="myLineChart"></canvas>
+    </div>
+    <h2>选择时间窗口</h2>
     <label for="timeWindowId">选择时间窗口 ID:</label>
     <select id="timeWindowId"></select>
     <button id="updateButton">更新数据</button>
@@ -18,12 +23,15 @@
         </tr>
     </table>
     <h2>饼状图</h2>
-    <div class="chart">
-        <canvas id="myPieChart"></canvas>
-    </div>
-    <h2>折线图</h2>
-    <div class="chart">
-        <canvas id="myLineChart"></canvas>
+    <div class="chart-container">
+        <div class="chart">
+            <canvas id="myPieChart"></canvas>
+        </div>
+        <div class="data-display">
+            <h3 style="font-size: 36px; color: black;">主力净流入: <span id="mainNetInflow"></span></h3>
+            <h4 style="font-size: 24px; color: red;">主力流入: <span id="mainInflow"></span></h4>
+            <h4 style="font-size: 24px; color: green;">主力流出: <span id="mainOutflow"></span></h4>
+        </div>
     </div>
     <h2>买单和卖单柱状图</h2>
     <div class="chart-container">

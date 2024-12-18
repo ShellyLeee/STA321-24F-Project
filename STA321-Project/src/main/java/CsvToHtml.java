@@ -39,6 +39,8 @@ public class CsvToHtml {
             writer.write(".chart { width: 45%; }\n");
             writer.write(".data-table { width: 80%; margin: auto; border-collapse: collapse; }\n");
             writer.write(".data-table th, .data-table td { border: 1px solid #ccc; padding: 8px; text-align: center; }\n");
+            writer.write(".chart-container { display: flex; justify-content: space-between; align-items: center; }\n");
+            writer.write(".data-display { margin-left: 20px; }\n");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -103,6 +105,12 @@ public class CsvToHtml {
             writer.write("            dataTable.appendChild(row);\n");
             writer.write("        });\n");
             writer.write("\n");
+
+            writer.write("        document.getElementById('mainNetInflow').textContent = rowData[0];\n");
+            writer.write("        document.getElementById('mainInflow').textContent = rowData[1];\n");
+            writer.write("        document.getElementById('mainOutflow').textContent = rowData[2];\n");
+            writer.write("\n");
+
             writer.write("        // 更新饼状图数据\n");
             writer.write("        const pieData = [parseFloat(rowData[0]), parseFloat(rowData[1]), parseFloat(rowData[2])];\n");
             writer.write("        if (myPieChart) {\n");
@@ -219,7 +227,7 @@ public class CsvToHtml {
     private static String getLineLabels(List<String[]> data) {
         StringBuilder labels = new StringBuilder("[");
         for (int i = 1; i < data.size(); i++) {
-            labels.append("\"").append(data.get(i)[3]).append("\""); // 假设时间窗口在第4列
+            labels.append("\"").append(data.get(i)[19]).append("\""); // 假设时间窗口在第19列
             if (i < data.size() - 1) {
                 labels.append(",");
             }
@@ -275,7 +283,13 @@ public class CsvToHtml {
             writer.write("<body>\n");
             writer.write("    <h1>股票交易数据可视化</h1>\n");
 
+            writer.write("    <h2>全天股票数据折线图</h2>\n");
+            writer.write("    <div class=\"chart\">\n");
+            writer.write("        <canvas id=\"myLineChart\"></canvas>\n");
+            writer.write("    </div>\n");
+
             // 添加下拉框和按钮
+            writer.write("    <h2>选择时间窗口</h2>\n");
             writer.write("    <label for=\"timeWindowId\">选择时间窗口 ID:</label>\n");
             writer.write("    <select id=\"timeWindowId\"></select>\n");
             writer.write("    <button id=\"updateButton\">更新数据</button>\n");
@@ -290,13 +304,15 @@ public class CsvToHtml {
 
             // 图表展示
             writer.write("    <h2>饼状图</h2>\n");
-            writer.write("    <div class=\"chart\">\n");
-            writer.write("        <canvas id=\"myPieChart\"></canvas>\n");
-            writer.write("    </div>\n");
-
-            writer.write("    <h2>折线图</h2>\n");
-            writer.write("    <div class=\"chart\">\n");
-            writer.write("        <canvas id=\"myLineChart\"></canvas>\n");
+            writer.write("    <div class=\"chart-container\">\n");
+            writer.write("        <div class=\"chart\">\n");
+            writer.write("            <canvas id=\"myPieChart\"></canvas>\n");
+            writer.write("        </div>\n");
+            writer.write("        <div class=\"data-display\">\n");
+            writer.write("            <h3 style=\"font-size: 36px; color: black;\">主力净流入: <span id=\"mainNetInflow\"></span></h3>\n");
+            writer.write("            <h4 style=\"font-size: 24px; color: red;\">主力流入: <span id=\"mainInflow\"></span></h4>\n");
+            writer.write("            <h4 style=\"font-size: 24px; color: green;\">主力流出: <span id=\"mainOutflow\"></span></h4>\n");
+            writer.write("        </div>\n");
             writer.write("    </div>\n");
 
             // 买单和卖单柱状图并排展示
