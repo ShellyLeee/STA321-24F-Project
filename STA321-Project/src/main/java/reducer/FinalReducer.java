@@ -14,6 +14,9 @@ public class FinalReducer extends Reducer<Text, Text, Text, Text> {
 
     @Override
     public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
+        // 存储当前id的时间窗口
+        String timeWindow = "";
+
         // 使用 TreeMap 确保时间窗口 ID 的排序
         TreeMap<Integer, String> sortedResults = new TreeMap<>();
 
@@ -22,7 +25,7 @@ public class FinalReducer extends Reducer<Text, Text, Text, Text> {
 
         // 遍历所有值，累加每个主动委托索引的成交量和成交额，并记录买卖类型
         for (Text value : values) {
-            String[] fields = value.toString().split(" ");
+            String[] fields = value.toString().split(",");
             if (fields.length < 4) {
                 continue; // 跳过不合法的记录
             }
@@ -33,6 +36,7 @@ public class FinalReducer extends Reducer<Text, Text, Text, Text> {
                 double tradeQty = Double.parseDouble(fields[2]); // 成交量
                 double amount = price * tradeQty;                // 成交金额
                 int tradeType = Integer.parseInt(fields[3].trim()); // 买卖类型
+                timeWindow = fields[4].trim();
 
                 activeOrderData.putIfAbsent(activeOrderIndex, new Object[]{0.0, 0.0, tradeType});
                 Object[] data = activeOrderData.get(activeOrderIndex);
@@ -110,6 +114,7 @@ public class FinalReducer extends Reducer<Text, Text, Text, Text> {
         // 将结果与时间窗口 ID 一起存储
         int timeWindowID = Integer.parseInt(key.toString());
         resultBuilder.append(",").append(timeWindowID);
+        resultBuilder.append(",").append(timeWindow);
 
         sortedResults.put(timeWindowID, resultBuilder.toString());
 
