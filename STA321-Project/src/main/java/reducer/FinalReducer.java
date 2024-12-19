@@ -2,15 +2,16 @@ package reducer;
 
 import org.apache.hadoop.io.*;
 import org.apache.hadoop.mapreduce.Reducer;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeMap;
 
 public class FinalReducer extends Reducer<LongWritable, Text, Text, Text> {
 
     private static final double CIRCULATION_STOCK = 17170245800.0; // 流通盘总量
+
+    // 标记表头是否已输出
+    private boolean isHeaderWritten = false;
 
     @Override
     public void reduce(LongWritable key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
@@ -108,12 +109,18 @@ public class FinalReducer extends Reducer<LongWritable, Text, Text, Text> {
                     .append(",").append(sellAmount[i]);
         }
 
-        // 将结果与时间窗口 ID 一起存储
-        resultBuilder.append(",").append(timeWindow);
-
         // 构建输出结果
         Text outputValue = new Text(resultBuilder.toString());
 
-        context.write(new Text(key.toString()), outputValue);
+        // 如果是第一次输出，则添加表头
+        if (!isHeaderWritten) {
+            String header = "主力净流入,主力流入,主力流出,超大买单成交量,超大买单成交额,超大卖单成交量,超大卖单成交额,"
+                    + "大买单成交量,大买单成交额,大卖单成交量,大卖单成交额,中买单成交量,中买单成交额,中卖单成交量,中卖单成交额,"
+                    + "小买单成交量,小买单成交额,小卖单成交量,小卖单成交额,";
+            context.write(new Text(header), new Text("时间区间"));  // 输出表头
+            isHeaderWritten = true;  // 标记表头已输出
+        }
+
+        context.write(outputValue, new Text(","+timeWindow));
     }
 }
