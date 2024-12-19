@@ -2,6 +2,7 @@ package driver;
 
 import mapper.FinalMapper;
 import mapper.FinalTradePreprocessingMapper;
+import org.apache.hadoop.io.LongWritable;
 import reducer.FinalReducer;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -62,6 +63,8 @@ public class FinalDriver {
         // 设置 Mapper
         MultipleInputs.addInputPath(job, new Path(TRADE_INPUT_PATH1), TextInputFormat.class, FinalMapper.class);
         MultipleInputs.addInputPath(job, new Path(TRADE_INPUT_PATH2), TextInputFormat.class, FinalMapper.class);
+        job.setMapOutputKeyClass(LongWritable.class);  // Mapper的输出Key类型
+        job.setMapOutputValueClass(Text.class);        // Mapper的输出Value类型
 
         // 设置 Reducer
         job.setReducerClass(FinalReducer.class);

@@ -8,17 +8,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class FinalReducer extends Reducer<Text, Text, Text, Text> {
+public class FinalReducer extends Reducer<LongWritable, Text, Text, Text> {
 
     private static final double CIRCULATION_STOCK = 17170245800.0; // 流通盘总量
 
     @Override
-    public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
+    public void reduce(LongWritable key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
         // 存储当前id的时间窗口
         String timeWindow = "";
-
-        // 使用 TreeMap 确保时间窗口 ID 的排序
-        TreeMap<Integer, String> sortedResults = new TreeMap<>();
 
         // 存储每个主动委托索引的累计成交量、成交额和买卖类型
         Map<String, Object[]> activeOrderData = new HashMap<>();
@@ -112,15 +109,11 @@ public class FinalReducer extends Reducer<Text, Text, Text, Text> {
         }
 
         // 将结果与时间窗口 ID 一起存储
-        int timeWindowID = Integer.parseInt(key.toString());
-        resultBuilder.append(",").append(timeWindowID);
         resultBuilder.append(",").append(timeWindow);
 
-        sortedResults.put(timeWindowID, resultBuilder.toString());
+        // 构建输出结果
+        Text outputValue = new Text(resultBuilder.toString());
 
-        // 遍历排序后的结果并输出
-        for (Map.Entry<Integer, String> sortedEntry : sortedResults.entrySet()) {
-            context.write(new Text(String.valueOf(sortedEntry.getKey())), new Text(sortedEntry.getValue()));
-        }
+        context.write(new Text(key.toString()), outputValue);
     }
 }

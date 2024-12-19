@@ -6,7 +6,7 @@ import org.apache.hadoop.mapreduce.Mapper;
 
 import java.io.IOException;
 
-public class FinalMapper extends Mapper<LongWritable, Text, Text, Text> {
+public class FinalMapper extends Mapper<LongWritable, Text, LongWritable, Text> {
 
     private static final long TIME_WINDOW = 10; // 10分钟时间窗口
 
@@ -40,19 +40,20 @@ public class FinalMapper extends Mapper<LongWritable, Text, Text, Text> {
                     String price = records[12];
                     String tradeQty = records[13];
 
-                    // 计算时间窗口ID
-                    long timeWindowID = Long.parseLong(calculateTimeWindowID(tradeTime).split(",")[0]);
-                    String timeWindow = calculateTimeWindowID(tradeTime).split(",")[1];
+                    // 获取时间窗口ID和时间段信息
+                    String timeWindowInfo = calculateTimeWindowID(tradeTime);
+                    String[] timeWindowParts = timeWindowInfo.split(",");
+                    LongWritable timeWindowID = new LongWritable(Long.parseLong(timeWindowParts[0]));
+                    String timeWindow = timeWindowParts[1];
 
                     // 确定交易类型并获取主动单索引
                     String activeOrderIndex = (bidApplSeqNum > offerApplSeqNum) ? String.valueOf(bidApplSeqNum) : String.valueOf(offerApplSeqNum);
                     int tradeType = (bidApplSeqNum > offerApplSeqNum) ? 1 : 2;
 
                     // 输出 Key-Value 对
-                    String outputKey = String.valueOf(timeWindowID);
                     String outputValue = activeOrderIndex + "," + price + "," + tradeQty + "," + tradeType + "," + timeWindow;
 
-                    context.write(new Text(outputKey), new Text(outputValue));
+                    context.write(timeWindowID, new Text(outputValue));
                 }
             }
         } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
