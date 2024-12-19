@@ -9,6 +9,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const updateButton = document.getElementById('updateButton');
     const dataTable = document.getElementById('dataDisplay');
     const ctxPie = document.getElementById('myPieChart').getContext('2d');
+    const ctxPie2 = document.getElementById('myPieChart2').getContext('2d');
+    const ctxPie3 = document.getElementById('myPieChart3').getContext('2d');
     const ctxBar = document.getElementById('myBarChart').getContext('2d');
     const ctxBarSell = document.getElementById('myBarChartSell').getContext('2d');
 
@@ -31,20 +33,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-let myPieChart;
-let myBarChart;
-let myBarChartSell;
-function updateCharts(timeWindowId) {
-    const rowData = data[timeWindowId];
-    if (rowData) {
-        // 更新数据展示
+    let myPieChart;
+    let myPieChart2;
+    let myPieChart3;
+    let myBarChart;
+    let myBarChartSell;
+    function updateCharts(timeWindowId) {
+        const rowData = data[timeWindowId];
+        if (rowData) {
+            // 更新数据展示
 
-        const rows = dataTable.getElementsByTagName('tr');
-        while (rows.length > 1) { 
-            dataTable.deleteRow(1); 
-        }
-        const newRow = document.createElement('tr');
-        newRow.innerHTML = `<td>${rowData[0]}</td><td>${rowData[1]}</td><td>${rowData[2]}</td>
+            const rows = dataTable.getElementsByTagName('tr');
+            while (rows.length > 1) {
+                dataTable.deleteRow(1);
+            }
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `<td>${rowData[0]}</td><td>${rowData[1]}</td><td>${rowData[2]}</td>
                             <td>${rowData[3]}</td><td>${rowData[4]}</td>
                             <td>${rowData[5]}</td><td>${rowData[6]}</td>
                             <td>${rowData[7]}</td><td>${rowData[8]}</td>
@@ -53,105 +57,149 @@ function updateCharts(timeWindowId) {
                             <td>${rowData[13]}</td><td>${rowData[14]}</td>
                             <td>${rowData[15]}</td><td>${rowData[16]}</td>
                             <td>${rowData[17]}</td><td>${rowData[18]}</td><td>${rowData[19]}</td>`;
-        dataTable.appendChild(newRow);
+            dataTable.appendChild(newRow);
 
-        document.getElementById('mainNetInflow').textContent = rowData[0];
-        document.getElementById('mainInflow').textContent = rowData[1];
-        document.getElementById('mainOutflow').textContent = rowData[2];
+            document.getElementById('mainNetInflow').textContent = rowData[0];
+            document.getElementById('mainInflow').textContent = rowData[1];
+            document.getElementById('mainOutflow').textContent = rowData[2];
 
-        // 更新饼状图数据
-        const pieData = [parseFloat(rowData[0]), parseFloat(rowData[1]), parseFloat(rowData[2])];
-        if (myPieChart) {
-            myPieChart.destroy(); // 销毁旧的图表
-        }
-        myPieChart = new Chart(ctxPie, {
-            type: 'pie',
-            data: {
-                labels: ['主力净流入', '主力流入', '主力流出'],
-                datasets: [{
-                    data: pieData,
-                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { position: 'top' }
-                }
+            // 更新饼状图1数据
+            const pieData = [parseFloat(rowData[1]), parseFloat(rowData[2])];
+            if (myPieChart) {
+                myPieChart.destroy(); // 销毁旧的图表
             }
-        });
-
-        // 更新买单柱状图数据
-        const barVolumeData = [
-            parseFloat(rowData[3]), // 超大买单成交量
-            parseFloat(rowData[7]), // 大买单成交量
-            parseFloat(rowData[11]), // 中买单成交量
-            parseFloat(rowData[15])  // 小买单成交量
-        ];
-        const barAmountData = [
-            parseFloat(rowData[4]), // 超大买单成交额
-            parseFloat(rowData[8]), // 大买单成交额
-            parseFloat(rowData[12]), // 中买单成交额
-            parseFloat(rowData[16])  // 小买单成交额
-        ];
-        if (myBarChart) {
-            myBarChart.destroy(); // 销毁旧的图表
-        }
-        myBarChart = new Chart(ctxBar, {
-            type: 'bar',
-            data: {
-                labels: ['超大买单', '大买单', '中买单', '小买单'],
-                datasets: [
-                    { label: '成交量', data: barVolumeData, backgroundColor: '#FF6384' },
-                    { label: '成交额', data: barAmountData, backgroundColor: '#36A2EB' }
-                ]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    x: { title: { display: true, text: '买单类型' } },
-                    y: { title: { display: true, text: '金额' } }
+            myPieChart = new Chart(ctxPie, {
+                type: 'pie',
+                data: {
+                    labels: ['主力流入', '主力流出'],
+                    datasets: [{
+                        data: pieData,
+                        backgroundColor: ['#FF6384', '#36A2EB'],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'top' }
+                    }
                 }
-            }
-        });
+            });
 
-        // 更新卖单柱状图数据
-        const barSellVolumeData = [
-            parseFloat(rowData[5]), // 超大卖单成交量
-            parseFloat(rowData[9]), // 大卖单成交量
-            parseFloat(rowData[13]), // 中卖单成交量
-            parseFloat(rowData[17])  // 小卖单成交量
-        ];
-        const barSellAmountData = [
-            parseFloat(rowData[6]), // 超大卖单成交额
-            parseFloat(rowData[10]), // 大卖单成交额
-            parseFloat(rowData[14]), // 中卖单成交额
-            parseFloat(rowData[18])  // 小卖单成交额
-        ];
-        if (myBarChartSell) {
-            myBarChartSell.destroy(); // 销毁旧的图表
-        }
-        myBarChartSell = new Chart(ctxBarSell, {
-            type: 'bar',
-            data: {
-                labels: ['超大卖单', '大卖单', '中卖单', '小卖单'],
-                datasets: [
-                    { label: '成交量', data: barSellVolumeData, backgroundColor: '#FF6384' },
-                    { label: '成交额', data: barSellAmountData, backgroundColor: '#36A2EB' }
-                ]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    x: { title: { display: true, text: '卖单类型' } },
-                    y: { title: { display: true, text: '金额' } }
-                }
+            // 更新饼状图2数据
+            const pieData2 = [parseFloat(rowData[4]), parseFloat(rowData[8])];
+            if (myPieChart2) {
+                myPieChart2.destroy(); // 销毁旧的图表
             }
-        });
-    } else {
-        alert('未找到对应的时间窗口数据！');
+            myPieChart2 = new Chart(ctxPie2, {
+                type: 'pie',
+                data: {
+                    labels: ['超大买单成交额', '大买单成交额'],
+                    datasets: [{
+                        data: pieData2,
+                        backgroundColor: ['#d5285f', '#e393bf'],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'top' }
+                    }
+                }
+            });
+
+            // 更新饼状图3数据
+            const pieData3 = [parseFloat(rowData[6]), parseFloat(rowData[10])];
+            if (myPieChart3) {
+                myPieChart3.destroy(); // 销毁旧的图表
+            }
+            myPieChart3 = new Chart(ctxPie3, {
+                type: 'pie',
+                data: {
+                    labels: ['超大卖单成交额', '大卖单成交额'],
+                    datasets: [{
+                        data: pieData3,
+                        backgroundColor: ['#5374c7', '#4dd4f1'],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'top' }
+                    }
+                }
+            });
+
+            // 更新买单柱状图数据
+            const barVolumeData = [
+                parseFloat(rowData[3]), // 超大买单成交量
+                parseFloat(rowData[7]), // 大买单成交量
+                parseFloat(rowData[11]), // 中买单成交量
+                parseFloat(rowData[15])  // 小买单成交量
+            ];
+            const barAmountData = [
+                parseFloat(rowData[4]), // 超大买单成交额
+                parseFloat(rowData[8]), // 大买单成交额
+                parseFloat(rowData[12]), // 中买单成交额
+                parseFloat(rowData[16])  // 小买单成交额
+            ];
+            if (myBarChart) {
+                myBarChart.destroy(); // 销毁旧的图表
+            }
+            myBarChart = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: ['超大买单', '大买单', '中买单', '小买单'],
+                    datasets: [
+                        { label: '成交量', data: barVolumeData, backgroundColor: '#FF6384' },
+                        { label: '成交额', data: barAmountData, backgroundColor: '#36A2EB' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { title: { display: true, text: '买单类型' } },
+                        y: { title: { display: true, text: '金额' } }
+                    }
+                }
+            });
+
+            // 更新卖单柱状图数据
+            const barSellVolumeData = [
+                parseFloat(rowData[5]), // 超大卖单成交量
+                parseFloat(rowData[9]), // 大卖单成交量
+                parseFloat(rowData[13]), // 中卖单成交量
+                parseFloat(rowData[17])  // 小卖单成交量
+            ];
+            const barSellAmountData = [
+                parseFloat(rowData[6]), // 超大卖单成交额
+                parseFloat(rowData[10]), // 大卖单成交额
+                parseFloat(rowData[14]), // 中卖单成交额
+                parseFloat(rowData[18])  // 小卖单成交额
+            ];
+            if (myBarChartSell) {
+                myBarChartSell.destroy(); // 销毁旧的图表
+            }
+            myBarChartSell = new Chart(ctxBarSell, {
+                type: 'bar',
+                data: {
+                    labels: ['超大卖单', '大卖单', '中卖单', '小卖单'],
+                    datasets: [
+                        { label: '成交量', data: barSellVolumeData, backgroundColor: '#FF6384' },
+                        { label: '成交额', data: barSellAmountData, backgroundColor: '#36A2EB' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { title: { display: true, text: '卖单类型' } },
+                        y: { title: { display: true, text: '金额' } }
+                    }
+                }
+            });
+        } else {
+            alert('未找到对应的时间窗口数据！');
+        }
     }
-}
 
     // 填充下拉框
     data.forEach((row, index) => {

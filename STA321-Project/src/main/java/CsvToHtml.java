@@ -12,7 +12,6 @@ public class CsvToHtml {
         String jsFile = "data/script.js"; // JavaScript文件路径
         String cssFile = "data/style.css"; // CSS文件路径
         List<String[]> data = readCsv(csvFile);
-        generateCss(cssFile);
         generateJs(jsFile, data);
         generateHtml(htmlFile, data); // 将data传递给generateHtml方法
     }
@@ -29,21 +28,6 @@ public class CsvToHtml {
             e.printStackTrace();
         }
         return data;
-    }
-
-    // 生成CSS文件
-    private static void generateCss(String cssFile) {
-        try (FileWriter writer = new FileWriter(cssFile)) {
-            writer.write("body { font-family: Arial, sans-serif; }\n");
-            writer.write(".chart-container { display: flex; justify-content: space-around; margin: 20px 0; }\n");
-            writer.write(".chart { width: 45%; }\n");
-            writer.write(".data-table { width: 80%; margin: auto; border-collapse: collapse; }\n");
-            writer.write(".data-table th, .data-table td { border: 1px solid #ccc; padding: 8px; text-align: center; }\n");
-            writer.write(".chart-container { display: flex; justify-content: space-between; align-items: center; }\n");
-            writer.write(".data-display { margin-left: 20px; }\n");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     // 生成JavaScript文件
@@ -97,7 +81,7 @@ public class CsvToHtml {
             writer.write("    if (rowData) {\n");
             writer.write("        // 更新数据展示\n");
             writer.write("\n");
-            
+
             writer.write("        const rows = dataTable.getElementsByTagName('tr');\n");
             writer.write("        while (rows.length > 1) { \n");
             writer.write("            dataTable.deleteRow(1); \n");
@@ -121,17 +105,17 @@ public class CsvToHtml {
             writer.write("\n");
 
             writer.write("        // 更新饼状图数据\n");
-            writer.write("        const pieData = [parseFloat(rowData[0]), parseFloat(rowData[1]), parseFloat(rowData[2])];\n");
+            writer.write("        const pieData = [parseFloat(rowData[1]), parseFloat(rowData[2])];\n");
             writer.write("        if (myPieChart) {\n");
             writer.write("            myPieChart.destroy(); // 销毁旧的图表\n");
             writer.write("        }\n");
             writer.write("        myPieChart = new Chart(ctxPie, {\n");
             writer.write("            type: 'pie',\n");
             writer.write("            data: {\n");
-            writer.write("                labels: ['主力净流入', '主力流入', '主力流出'],\n");
+            writer.write("                labels: ['主力流入', '主力流出'],\n");
             writer.write("                datasets: [{\n");
             writer.write("                    data: pieData,\n");
-            writer.write("                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],\n");
+            writer.write("                    backgroundColor: ['#FF6384', '#36A2EB'],\n");
             writer.write("                }]\n");
             writer.write("            },\n");
             writer.write("            options: {\n");
@@ -334,15 +318,15 @@ public class CsvToHtml {
             writer.write("    </table>\n");
 
             // 图表展示
-            writer.write("    <h2>饼状图</h2>\n");
             writer.write("    <div class=\"chart-container\">\n");
-            writer.write("        <div class=\"chart\">\n");
-            writer.write("            <canvas id=\"myPieChart\"></canvas>\n");
-            writer.write("        </div>\n");
             writer.write("        <div class=\"data-display\">\n");
             writer.write("            <h3 style=\"font-size: 36px; color: black;\">主力净流入: <span id=\"mainNetInflow\"></span></h3>\n");
             writer.write("            <h4 style=\"font-size: 24px; color: red;\">主力流入: <span id=\"mainInflow\"></span></h4>\n");
             writer.write("            <h4 style=\"font-size: 24px; color: green;\">主力流出: <span id=\"mainOutflow\"></span></h4>\n");
+            writer.write("        </div>\n");
+            writer.write("        <div class=\"chart\">\n");
+            writer.write("    <h2>饼状图</h2>\n");
+            writer.write("            <canvas id=\"myPieChart\"></canvas>\n");
             writer.write("        </div>\n");
             writer.write("    </div>\n");
 
