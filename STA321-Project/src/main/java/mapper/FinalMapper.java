@@ -8,7 +8,7 @@ import java.io.IOException;
 
 public class FinalMapper extends Mapper<LongWritable, Text, LongWritable, Text> {
 
-    private static final long TIME_WINDOW = 10; // 10分钟时间窗口
+    private static final long TIME_WINDOW = 20; // 10分钟时间窗口
 
     // 时间段的起始和结束时间戳
     private static final long MORNING_START = 20190102093000000L;

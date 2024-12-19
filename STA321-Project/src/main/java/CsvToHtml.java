@@ -7,12 +7,10 @@ import java.util.List;
 
 public class CsvToHtml {
     public static void main(String[] args) {
-        String csvFile = "data/Final_10min.csv"; // CSV文件路径
-        String htmlFile = "data/visualization.html"; // 输出的HTML文件路径
+        String csvFile = "data/Final_20.csv"; // CSV文件路径
         String jsFile = "data/script.js"; // JavaScript文件路径
         List<String[]> data = readCsv(csvFile);
         generateJs(jsFile, data);
-        generateHtml(htmlFile, data); // 将data传递给generateHtml方法
     }
 
     // 读取CSV文件
@@ -249,7 +247,7 @@ public class CsvToHtml {
             writer.write("    data.forEach((row, index) => {\n");
             writer.write("        const option = document.createElement('option');\n");
             writer.write("        option.value = index;\n");
-            writer.write("        option.textContent = '时间窗口 ' + index;\n");
+            writer.write("        option.textContent = '时间窗口' + index + ': '+ row[19];\n");
             writer.write("        timeWindowSelect.appendChild(option);\n");
             writer.write("    });\n");
             writer.write("\n");
@@ -267,7 +265,7 @@ public class CsvToHtml {
     private static String getLineLabels(List<String[]> data) {
         StringBuilder labels = new StringBuilder("[");
         for (int i = 1; i < data.size(); i++) {
-            labels.append("\"").append(data.get(i)[19]).append("\""); // 假设时间窗口在第19列
+            labels.append("\"").append(data.get(i)[19]).append("\""); // 假设时间区间在第19列
             if (i < data.size() - 1) {
                 labels.append(",");
             }
@@ -307,106 +305,5 @@ public class CsvToHtml {
         }
         jsonBuilder.append("]");
         return jsonBuilder.toString();
-    }
-
-    // 生成HTML文件
-    private static void generateHtml(String htmlFile, List<String[]> data) {
-        try (FileWriter writer = new FileWriter(htmlFile)) {
-            writer.write("<!DOCTYPE html>\n");
-            writer.write("<html lang=\"en\">\n");
-            writer.write("<head>\n");
-            writer.write("    <meta charset=\"UTF-8\">\n");
-            writer.write("    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n");
-            writer.write("    <title>股票交易数据可视化</title>\n");
-            writer.write("    <link rel=\"stylesheet\" href=\"style.css\">\n");
-            writer.write("</head>\n");
-            writer.write("<body>\n");
-            writer.write("    <h1>股票交易数据可视化</h1>\n");
-            writer.write("    <hr style=\"border: 1px solid #ccc; margin: 10px 0;\">\n");
-
-            // 添加全天股票数据展示、下拉框和按钮
-            writer.write("    <div class=\"chart-container\">\n");
-            writer.write("        <div class=\"chart\">\n");
-            writer.write("            <h2>全天股票数据折线图</h2>\n");
-            writer.write("            <canvas id=\"myLineChart\"></canvas>\n");
-            writer.write("        </div>\n");
-            writer.write("        <div class=\"data-display\">\n");
-            writer.write("            <h2>选择时间窗口</h2>\n");
-            writer.write("            <label for=\"timeWindowId\">选择时间窗口 ID:</label>\n");
-            writer.write("            <select id=\"timeWindowId\"></select>\n");
-            writer.write("            <button id=\"updateButton\">更新数据</button>\n");
-            writer.write("        </div>\n");
-            writer.write("    </div>\n");
-            writer.write("    <hr style=\"border: 1px solid #ccc; margin: 40px 0;\">\n");
-
-            // 数据展示
-            writer.write("    <h2>数据展示</h2>\n");
-            writer.write("    <table class=\"data-table\" id=\"dataDisplay\">\n");
-            writer.write("        <tr>\n");
-            writer.write("            <th>主力净流入</th>\n");
-            writer.write("            <th>主力流入</th>\n");
-            writer.write("            <th>主力流出</th>\n");
-            writer.write("            <th>超大买单成交量</th>\n");
-            writer.write("            <th>超大买单成交额</th>\n");
-            writer.write("            <th>超大卖单成交量</th>\n");
-            writer.write("            <th>超大卖单成交额</th>\n");
-            writer.write("            <th>大买单成交量</th>\n");
-            writer.write("            <th>大买单成交额</th>\n");
-            writer.write("            <th>大卖单成交量</th>\n");
-            writer.write("            <th>大卖单成交额</th>\n");
-            writer.write("            <th>中买单成交量</th>\n");
-            writer.write("            <th>中买单成交额</th>\n");
-            writer.write("            <th>中卖单成交量</th>\n");
-            writer.write("            <th>中卖单成交额</th>\n");
-            writer.write("            <th>小买单成交量</th>\n");
-            writer.write("            <th>小买单成交额</th>\n");
-            writer.write("            <th>小卖单成交量</th>\n");
-            writer.write("            <th>小卖单成交额</th>\n");
-            writer.write("            <th>时间窗口id</th>\n");
-            writer.write("        </tr>\n");
-            writer.write("    </table>\n");
-
-            writer.write("    <hr style=\"border: 1px solid #ccc; margin: 10px 0;\">\n");
-
-            // 主力流入流出展示
-            writer.write("    <div class=\"chart-container\">\n");
-            writer.write("        <div class=\"data-display\">\n");
-            writer.write("            <h3 style=\"font-size: 44px; color: #5d5b5b;\">主力净流入: <span id=\"mainNetInflow\"></span></h3>\n");
-            writer.write("            <h4 style=\"font-size: 32px; color: red;\">主力流入: <span id=\"mainInflow\"></span></h4>\n");
-            writer.write("            <h4 style=\"font-size: 32px; color: green;\">主力流出: <span id=\"mainOutflow\"></span></h4>\n");
-            writer.write("        </div>\n");
-            writer.write("        <div class=\"chart\">\n");
-            writer.write("            <h2>主力流入流出占比</h2>\n");
-            writer.write("            <canvas id=\"myPieChart\"></canvas>\n");
-            writer.write("        </div>\n");
-            writer.write("        <div class=\"chart\">\n");
-            writer.write("            <h2>主力流入单类占比</h2>\n");
-            writer.write("            <canvas id=\"myPieChart2\"></canvas>\n");
-            writer.write("        </div>\n");
-            writer.write("        <div class=\"chart\">\n");
-            writer.write("            <h2>主力流出单类占比</h2>\n");
-            writer.write("            <canvas id=\"myPieChart3\"></canvas>\n");
-            writer.write("        </div>\n");
-            writer.write("    </div>\n");
-
-
-            // 买单和卖单柱状图并排展示
-            writer.write("    <h2>资金出入流向分布</h2>\n");
-            writer.write("    <div class=\"chart-container\">\n");
-            writer.write("        <div class=\"chart\">\n");
-            writer.write("            <canvas id=\"myBarChart\"></canvas>\n");
-            writer.write("        </div>\n");
-            writer.write("        <div class=\"chart\">\n");
-            writer.write("            <canvas id=\"myBarChartSell\"></canvas>\n");
-            writer.write("        </div>\n");
-            writer.write("    </div>\n");
-
-            writer.write("    <script src=\"https://cdn.jsdelivr.net/npm/chart.js\"></script>\n");
-            writer.write("    <script src=\"script.js\"></script>\n");
-            writer.write("</body>\n");
-            writer.write("</html>\n");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 }

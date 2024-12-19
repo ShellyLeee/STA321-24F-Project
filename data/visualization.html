@@ -3,24 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>股票交易数据可视化</title>
+    <title>股票资金流向可视化</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>股票交易数据可视化</h1>
+    <h1>股票资金流向可视化</h1>
     <hr style="border: 1px solid #ccc; margin: 10px 0;">
-    <div class="chart-container">
-        <div class="chart">
-            <h2>全天股票数据折线图</h2>
-            <canvas id="myLineChart"></canvas>
-        </div>
-        <div class="data-display">
-            <h2>选择时间窗口</h2>
-            <label for="timeWindowId">选择时间窗口 ID:</label>
-            <select id="timeWindowId"></select>
-            <button id="updateButton">更新数据</button>
-        </div>
+    <h2>全天股票资金流向走势图</h2>
+    <div class="bigChart">
+        <canvas id="myLineChart"></canvas>
     </div>
+
+    <hr style="border: 1px solid #ccc; margin: 40px 0;">
+    <h2>选择时间窗口</h2>
+    <div class="data-display">
+        <label for="timeWindowId">选择时间窗口:</label>
+        <select id="timeWindowId"></select>
+        <button id="updateButton">更新数据</button>
+    </div>
+
     <hr style="border: 1px solid #ccc; margin: 40px 0;">
     <h2>数据展示</h2>
     <table class="data-table" id="dataDisplay">
@@ -44,10 +45,12 @@
             <th>小买单成交额</th>
             <th>小卖单成交量</th>
             <th>小卖单成交额</th>
-            <th>时间窗口id</th>
+            <th>时间区间</th>
         </tr>
     </table>
-    <hr style="border: 1px solid #ccc; margin: 10px 0;">
+
+    <hr style="border: 1px solid #ccc; margin: 40px 0;">
+
     <div class="chart-container">
         <div class="data-display">
             <h3 style="font-size: 44px; color: #5d5b5b;">主力净流入: <span id="mainNetInflow"></span></h3>
@@ -67,6 +70,9 @@
             <canvas id="myPieChart3"></canvas>
         </div>
     </div>
+
+    <hr style="border: 1px solid #ccc; margin: 40px 0;">
+
     <h2>资金出入流向分布</h2>
     <div class="chart-container">
         <div class="chart">

@@ -18,6 +18,11 @@ body {
     width: 45%;
 }
 
+.bigChart {
+    width: 60%;
+    margin: 10px auto; /* 上下外边距为 10px，左右自动居中 */
+}
+
 .data-table {
     width: 80%;
     margin: auto;
@@ -33,3 +38,4 @@ body {
 .data-display {
     margin-left: 20px;
 }
+
