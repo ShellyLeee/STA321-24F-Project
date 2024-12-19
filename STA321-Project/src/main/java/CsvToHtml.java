@@ -10,7 +10,6 @@ public class CsvToHtml {
         String csvFile = "data/Final_10min.csv"; // CSV文件路径
         String htmlFile = "data/visualization.html"; // 输出的HTML文件路径
         String jsFile = "data/script.js"; // JavaScript文件路径
-        String cssFile = "data/style.css"; // CSS文件路径
         List<String[]> data = readCsv(csvFile);
         generateJs(jsFile, data);
         generateHtml(htmlFile, data); // 将data传递给generateHtml方法
@@ -47,6 +46,8 @@ public class CsvToHtml {
             writer.write("    const updateButton = document.getElementById('updateButton');\n");
             writer.write("    const dataTable = document.getElementById('dataDisplay');\n");
             writer.write("    const ctxPie = document.getElementById('myPieChart').getContext('2d');\n");
+            writer.write("    const ctxPie2 = document.getElementById('myPieChart2').getContext('2d');\n");
+            writer.write("    const ctxPie3 = document.getElementById('myPieChart3').getContext('2d');\n");
             writer.write("    const ctxBar = document.getElementById('myBarChart').getContext('2d');\n");
             writer.write("    const ctxBarSell = document.getElementById('myBarChartSell').getContext('2d');\n");
             writer.write("\n");
@@ -74,6 +75,8 @@ public class CsvToHtml {
 
             // 更新图表的函数
             writer.write("let myPieChart;\n");
+            writer.write("let myPieChart2;\n");
+            writer.write("let myPieChart3;\n");
             writer.write("let myBarChart;\n");
             writer.write("let myBarChartSell;\n");
             writer.write("function updateCharts(timeWindowId) {\n");
@@ -104,7 +107,7 @@ public class CsvToHtml {
             writer.write("        document.getElementById('mainOutflow').textContent = rowData[2];\n");
             writer.write("\n");
 
-            writer.write("        // 更新饼状图数据\n");
+            writer.write("        // 更新饼状图1数据\n");
             writer.write("        const pieData = [parseFloat(rowData[1]), parseFloat(rowData[2])];\n");
             writer.write("        if (myPieChart) {\n");
             writer.write("            myPieChart.destroy(); // 销毁旧的图表\n");
@@ -116,6 +119,50 @@ public class CsvToHtml {
             writer.write("                datasets: [{\n");
             writer.write("                    data: pieData,\n");
             writer.write("                    backgroundColor: ['#FF6384', '#36A2EB'],\n");
+            writer.write("                }]\n");
+            writer.write("            },\n");
+            writer.write("            options: {\n");
+            writer.write("                responsive: true,\n");
+            writer.write("                plugins: {\n");
+            writer.write("                    legend: { position: 'top' }\n");
+            writer.write("                }\n");
+            writer.write("            }\n");
+            writer.write("        });\n");
+            writer.write("\n");
+            writer.write("        // 更新饼状图2数据\n");
+            writer.write("        const pieData2 = [parseFloat(rowData[4]), parseFloat(rowData[8])];\n");
+            writer.write("        if (myPieChart2) {\n");
+            writer.write("            myPieChart2.destroy(); // 销毁旧的图表\n");
+            writer.write("        }\n");
+            writer.write("        myPieChart2 = new Chart(ctxPie2, {\n");
+            writer.write("            type: 'pie',\n");
+            writer.write("            data: {\n");
+            writer.write("                labels: ['超大买单成交额', '大买单成交额'],\n");
+            writer.write("                datasets: [{\n");
+            writer.write("                    data: pieData2,\n");
+            writer.write("                    backgroundColor: ['#d5285f', '#e393bf'],\n");
+            writer.write("                }]\n");
+            writer.write("            },\n");
+            writer.write("            options: {\n");
+            writer.write("                responsive: true,\n");
+            writer.write("                plugins: {\n");
+            writer.write("                    legend: { position: 'top' }\n");
+            writer.write("                }\n");
+            writer.write("            }\n");
+            writer.write("        });\n");
+            writer.write("\n");
+            writer.write("        // 更新饼状图3数据\n");
+            writer.write("        const pieData3 = [parseFloat(rowData[6]), parseFloat(rowData[10])];\n");
+            writer.write("        if (myPieChart3) {\n");
+            writer.write("            myPieChart3.destroy(); // 销毁旧的图表\n");
+            writer.write("        }\n");
+            writer.write("        myPieChart3 = new Chart(ctxPie3, {\n");
+            writer.write("            type: 'pie',\n");
+            writer.write("            data: {\n");
+            writer.write("                labels: ['超大卖单成交额', '大卖单成交额'],\n");
+            writer.write("                datasets: [{\n");
+            writer.write("                    data: pieData3,\n");
+            writer.write("                    backgroundColor: ['#5374c7', '#4dd4f1'],\n");
             writer.write("                }]\n");
             writer.write("            },\n");
             writer.write("            options: {\n");
@@ -275,6 +322,7 @@ public class CsvToHtml {
             writer.write("</head>\n");
             writer.write("<body>\n");
             writer.write("    <h1>股票交易数据可视化</h1>\n");
+            writer.write("    <hr style=\"border: 1px solid #ccc; margin: 10px 0;\">\n");
 
             // 添加全天股票数据展示、下拉框和按钮
             writer.write("    <div class=\"chart-container\">\n");
@@ -289,6 +337,7 @@ public class CsvToHtml {
             writer.write("            <button id=\"updateButton\">更新数据</button>\n");
             writer.write("        </div>\n");
             writer.write("    </div>\n");
+            writer.write("    <hr style=\"border: 1px solid #ccc; margin: 40px 0;\">\n");
 
             // 数据展示
             writer.write("    <h2>数据展示</h2>\n");
@@ -317,21 +366,32 @@ public class CsvToHtml {
             writer.write("        </tr>\n");
             writer.write("    </table>\n");
 
-            // 图表展示
+            writer.write("    <hr style=\"border: 1px solid #ccc; margin: 10px 0;\">\n");
+
+            // 主力流入流出展示
             writer.write("    <div class=\"chart-container\">\n");
             writer.write("        <div class=\"data-display\">\n");
-            writer.write("            <h3 style=\"font-size: 36px; color: black;\">主力净流入: <span id=\"mainNetInflow\"></span></h3>\n");
-            writer.write("            <h4 style=\"font-size: 24px; color: red;\">主力流入: <span id=\"mainInflow\"></span></h4>\n");
-            writer.write("            <h4 style=\"font-size: 24px; color: green;\">主力流出: <span id=\"mainOutflow\"></span></h4>\n");
+            writer.write("            <h3 style=\"font-size: 44px; color: #5d5b5b;\">主力净流入: <span id=\"mainNetInflow\"></span></h3>\n");
+            writer.write("            <h4 style=\"font-size: 32px; color: red;\">主力流入: <span id=\"mainInflow\"></span></h4>\n");
+            writer.write("            <h4 style=\"font-size: 32px; color: green;\">主力流出: <span id=\"mainOutflow\"></span></h4>\n");
             writer.write("        </div>\n");
             writer.write("        <div class=\"chart\">\n");
-            writer.write("    <h2>饼状图</h2>\n");
+            writer.write("            <h2>主力流入流出占比</h2>\n");
             writer.write("            <canvas id=\"myPieChart\"></canvas>\n");
+            writer.write("        </div>\n");
+            writer.write("        <div class=\"chart\">\n");
+            writer.write("            <h2>主力流入单类占比</h2>\n");
+            writer.write("            <canvas id=\"myPieChart2\"></canvas>\n");
+            writer.write("        </div>\n");
+            writer.write("        <div class=\"chart\">\n");
+            writer.write("            <h2>主力流出单类占比</h2>\n");
+            writer.write("            <canvas id=\"myPieChart3\"></canvas>\n");
             writer.write("        </div>\n");
             writer.write("    </div>\n");
 
+
             // 买单和卖单柱状图并排展示
-            writer.write("    <h2>买单和卖单柱状图</h2>\n");
+            writer.write("    <h2>资金出入流向分布</h2>\n");
             writer.write("    <div class=\"chart-container\">\n");
             writer.write("        <div class=\"chart\">\n");
             writer.write("            <canvas id=\"myBarChart\"></canvas>\n");
