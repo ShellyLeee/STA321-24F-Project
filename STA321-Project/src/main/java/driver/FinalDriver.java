@@ -22,31 +22,6 @@ public class FinalDriver {
     public static void main(String[] args) throws Exception {
         // 配置作业
         Configuration conf = new Configuration();
-        // MapReduce 配置
-        conf.setLong("mapreduce.task.timeout", 600000); // 超时10分钟
-        conf.setInt("mapreduce.map.memory.mb", 3072);  // Mapper内存3GB
-        conf.set("mapreduce.map.java.opts", "-Xmx2048m"); // JVM堆内存2GB
-        conf.setInt("mapreduce.reduce.memory.mb", 4096);  // Reducer内存4GB
-        conf.set("mapreduce.reduce.java.opts", "-Xmx3072m"); // JVM堆内存3GB
-
-// 启用压缩
-        conf.setBoolean("mapreduce.map.output.compress", true);
-        conf.set("mapreduce.map.output.compress.codec", "org.apache.hadoop.io.compress.SnappyCodec");
-
-// 分片大小
-        conf.set("mapreduce.input.fileinputformat.split.maxsize", "134217728"); // 每个split最大128MB
-        conf.set("mapreduce.input.fileinputformat.split.minsize", "67108864");  // 每个split最小64MB
-
-// 提高数据本地化概率
-        conf.setInt("mapreduce.input.fileinputformat.split.minsize.per.node", 67108864); // 单节点最小64MB
-        conf.setInt("mapreduce.input.fileinputformat.split.minsize.per.rack", 134217728); // 单机架最小128MB
-
-// JVM重用
-        conf.setInt("mapreduce.job.jvm.numtasks", -1);
-
-// YARN 容器资源配置
-        conf.setInt("yarn.nodemanager.resource.memory-mb", 12288); // YARN容器最大12GB
-        conf.setInt("yarn.scheduler.maximum-allocation-mb", 12288); // YARN最大分配12GB
 
         FileSystem fs = FileSystem.get(conf);
 
