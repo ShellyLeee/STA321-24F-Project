@@ -1,3 +1,25 @@
+/**
+ * CsvToHtml.java
+ *
+ * 作者: 李怡萱
+ * 功能: 该程序用于读取CSV文件中的股票数据并生成对应的JavaScript文件，以便在网页中进行资金流向可视化。
+ *      主要通过读取CSV文件并将数据格式化后，生成适用于HTML页面的JavaScript代码，支持动态更新图表数据。
+ * 实现方式:
+ * 1. 使用`BufferedReader`读取CSV文件，将每行数据分割为数组并存储。
+ * 2. 通过`FileWriter`生成JavaScript文件，配置图表的初始化以及更新功能。
+ * 3. 使用`Chart.js`库在网页中绘制折线图、饼状图和柱状图，展示不同类型的资金流向数据。
+ *
+ * 数据读取过程:
+ * 1. 从CSV文件中读取数据，每一行对应一个时间窗口的股票数据。
+ * 2. 根据数据生成适用于JavaScript的数据格式，并将其写入文件。
+ * 3. JavaScript文件会在网页中动态更新图表，通过点击按钮或选择时间窗口来更新显示的内容。
+ *
+ * 注意事项:
+ * 1. CSV文件的数据格式必须符合标准要求，确保正确读取数据。
+ * 2. 生成的JavaScript文件依赖于Chart.js库，所以需要在HTML中引用Chart.js。
+ */
+
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -7,7 +29,7 @@ import java.util.List;
 
 public class CsvToHtml {
     public static void main(String[] args) {
-        String csvFile = "data/Final_20.csv"; // CSV文件路径
+        String csvFile = "data/Final_1_new.csv"; // CSV文件路径
         String jsFile = "data/script.js"; // JavaScript文件路径
         List<String[]> data = readCsv(csvFile);
         generateJs(jsFile, data);

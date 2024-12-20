@@ -1,3 +1,18 @@
+/**
+ * FinalReducer.java
+ *
+ * FinalReducer 类是 Hadoop MapReduce 作业的 Reducer 类，负责根据时间窗口对交易数据进行汇总和统计。
+ *
+ * 作者: 欧炜娟
+ * 功能: 该类处理 Mapper 输出的交易数据，通过时间窗口 ID 将所有相同时间窗口的数据汇总，
+ *      并计算各类交易指标（如：主力流入、主力流出、买单和卖单的成交量和成交额等）。
+ *      最终输出每个时间窗口内的详细统计数据，并按时间区间输出。
+ * 实现方式:
+ * - 在 `reduce` 方法中对每个时间窗口 ID 进行汇总。
+ * - 计算每个时间窗口内的各类交易数据。
+ * - 输出每个时间窗口对应的统计信息。
+ */
+
 package reducer;
 
 import org.apache.hadoop.io.*;
@@ -36,13 +51,15 @@ public class FinalReducer extends Reducer<LongWritable, Text, Text, Text> {
             isHeaderWritten = true;  // 标记表头已输出
         }
 
+
+        // 获取当前时间窗口对应的时间区间，并补足缺失的时间区间
         long timeWindowID = key.get();
 
         if (index < timeWindowID){
             long initial = index;
             for (long i = initial; i < key.get(); i++){
                 String timeInterval = calculateTimeInterval(index);
-                context.write(new Text("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"), new Text(timeInterval));
+                context.write(new Text("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"), new Text(timeInterval)); // 补足缺失的时间区间
                 index++;
             }
         }
@@ -137,7 +154,6 @@ public class FinalReducer extends Reducer<LongWritable, Text, Text, Text> {
                     .append(",").append(sellAmount[i]);
         }
 
-        // 构建输出结果
         Text outputValue = new Text(resultBuilder.toString());
 
         context.write(outputValue, new Text(","+timeInterval));
@@ -188,11 +204,11 @@ public class FinalReducer extends Reducer<LongWritable, Text, Text, Text> {
         String afternoonStart = String.valueOf(AFTERNOON_START).substring(8, 12);
 
         if (timeWindowID <= interval) {
-            // 早上 9:30 - 11:30 的时间段，计算属于哪个窗口
+            // 早上 9:30 - 11:30 的时间段，计算属于哪个区间
             timeWindowBegin = addTime(morningStart,timeWindowID-1, TIME_WINDOW);
             timeWindowEnd = addTime(morningStart,timeWindowID, TIME_WINDOW);
         } else if (timeWindowID > interval) {
-            // 下午 13:00 - 15:00 的时间段，计算属于哪个窗口
+            // 下午 13:00 - 15:00 的时间段，计算属于哪个区间
             timeWindowBegin = addTime(afternoonStart,timeWindowID-1-interval, TIME_WINDOW);
             timeWindowEnd = addTime(afternoonStart,timeWindowID-interval, TIME_WINDOW);
         }

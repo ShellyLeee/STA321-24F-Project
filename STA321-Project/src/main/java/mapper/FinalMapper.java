@@ -1,3 +1,18 @@
+/**
+ * FinalMapper.java
+ *
+ * FinalMapper 类是 Hadoop MapReduce 作业的 Mapper 类，负责从输入数据中提取关键信息并根据时间窗口进行数据处理。
+ *
+ * 作者: 李怡萱
+ * 功能: 该类实现了交易数据的预处理，筛选特定的交易数据（如：交易类型为 "F" 和 SecurityID 为 "000001"），
+ *      并根据交易时间将数据按时间窗口进行分组。每条有效数据会被输出为一个 (key, value) 对，其中 key 是时间窗口 ID，
+ *      value 包含了交易相关的多个字段信息。
+ * 实现方式:
+ * - 使用 `map` 方法处理输入数据，筛选符合条件的记录。
+ * - 通过时间戳将交易数据分配到指定的时间窗口内。
+ * - 计算每个交易的主动委托索引（买单或卖单），并将数据按时间窗口 ID 和委托索引输出。
+ */
+
 package mapper;
 
 import org.apache.hadoop.io.Text;
@@ -8,7 +23,7 @@ import java.io.IOException;
 
 public class FinalMapper extends Mapper<LongWritable, Text, LongWritable, Text> {
 
-    private static final long TIME_WINDOW = 1; // 10分钟时间窗口
+    private static final long TIME_WINDOW = 1; // 1分钟时间窗口
 
     // 时间段的起始和结束时间戳
     private static final long MORNING_START = 20190102093000000L;

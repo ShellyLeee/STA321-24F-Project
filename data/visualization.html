@@ -8,12 +8,16 @@
 </head>
 <body>
     <h1>股票资金流向可视化</h1>
+
     <hr style="border: 1px solid #ccc; margin: 10px 0;">
+
+    <!-- 主要展示股票资金流向的内容 -->
     <h2>全天股票资金流向走势图</h2>
     <div class="bigChart">
         <canvas id="myLineChart"></canvas>
     </div>
 
+    <!-- 数据选择下拉框 -->
     <hr style="border: 1px solid #ccc; margin: 40px 0;">
     <h2>选择时间窗口</h2>
     <div class="data-display">
@@ -23,6 +27,8 @@
     </div>
 
     <hr style="border: 1px solid #ccc; margin: 40px 0;">
+
+    <!-- 数据展示区域 -->
     <h2>数据展示</h2>
     <table class="data-table" id="dataDisplay">
         <tr>
@@ -51,6 +57,7 @@
 
     <hr style="border: 1px solid #ccc; margin: 40px 0;">
 
+    <!-- 图表展示区域 -->
     <div class="chart-container">
         <div class="data-display">
             <h3 style="font-size: 44px; color: #5d5b5b;">主力净流入: <span id="mainNetInflow"></span></h3>
