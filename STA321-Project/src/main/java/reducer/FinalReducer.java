@@ -10,13 +10,45 @@ public class FinalReducer extends Reducer<LongWritable, Text, Text, Text> {
 
     private static final double CIRCULATION_STOCK = 17170245800.0; // 流通盘总量
 
+    private static final long TIME_WINDOW = 1; // 1分钟时间窗口
+
+    // 时间段的起始和结束时间戳
+    private static final long MORNING_START = 20190102093000000L;
+    private static final long MORNING_END = 20190102113000000L;
+    private static final long AFTERNOON_START = 20190102130000000L;
+    private static final long AFTERNOON_END = 20190102150000000L;
+
+    // 判断是否有缺失的时间窗口的指标
+    private long index = 1;
+
     // 标记表头是否已输出
     private boolean isHeaderWritten = false;
 
     @Override
     public void reduce(LongWritable key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
+
+        // 如果是第一次输出，则添加表头
+        if (!isHeaderWritten) {
+            String header = "主力净流入,主力流入,主力流出,超大买单成交量,超大买单成交额,超大卖单成交量,超大卖单成交额,"
+                    + "大买单成交量,大买单成交额,大卖单成交量,大卖单成交额,中买单成交量,中买单成交额,中卖单成交量,中卖单成交额,"
+                    + "小买单成交量,小买单成交额,小卖单成交量,小卖单成交额,";
+            context.write(new Text(header), new Text("时间区间"));  // 输出表头
+            isHeaderWritten = true;  // 标记表头已输出
+        }
+
+        long timeWindowID = key.get();
+
+        if (index < timeWindowID){
+            long initial = index;
+            for (long i = initial; i < key.get(); i++){
+                String timeInterval = calculateTimeInterval(index);
+                context.write(new Text("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"), new Text(timeInterval));
+                index++;
+            }
+        }
+
         // 存储当前id的时间窗口
-        String timeWindow = "";
+        String timeInterval = calculateTimeInterval(timeWindowID);
 
         // 存储每个主动委托索引的累计成交量、成交额和买卖类型
         Map<String, Object[]> activeOrderData = new HashMap<>();
@@ -24,9 +56,6 @@ public class FinalReducer extends Reducer<LongWritable, Text, Text, Text> {
         // 遍历所有值，累加每个主动委托索引的成交量和成交额，并记录买卖类型
         for (Text value : values) {
             String[] fields = value.toString().split(",");
-            if (fields.length < 4) {
-                continue; // 跳过不合法的记录
-            }
 
             try {
                 String activeOrderIndex = fields[0].trim();       // 主动委托索引
@@ -34,7 +63,6 @@ public class FinalReducer extends Reducer<LongWritable, Text, Text, Text> {
                 double tradeQty = Double.parseDouble(fields[2]); // 成交量
                 double amount = price * tradeQty;                // 成交金额
                 int tradeType = Integer.parseInt(fields[3].trim()); // 买卖类型
-                timeWindow = fields[4].trim();
 
                 activeOrderData.putIfAbsent(activeOrderIndex, new Object[]{0.0, 0.0, tradeType});
                 Object[] data = activeOrderData.get(activeOrderIndex);
@@ -112,15 +140,63 @@ public class FinalReducer extends Reducer<LongWritable, Text, Text, Text> {
         // 构建输出结果
         Text outputValue = new Text(resultBuilder.toString());
 
-        // 如果是第一次输出，则添加表头
-        if (!isHeaderWritten) {
-            String header = "主力净流入,主力流入,主力流出,超大买单成交量,超大买单成交额,超大卖单成交量,超大卖单成交额,"
-                    + "大买单成交量,大买单成交额,大卖单成交量,大卖单成交额,中买单成交量,中买单成交额,中卖单成交量,中卖单成交额,"
-                    + "小买单成交量,小买单成交额,小卖单成交量,小卖单成交额,";
-            context.write(new Text(header), new Text("时间区间"));  // 输出表头
-            isHeaderWritten = true;  // 标记表头已输出
+        context.write(outputValue, new Text(","+timeInterval));
+        index++;
+    }
+    // 将时间字符串（yyyyMMddHHmmssSSS）转化为分钟
+    public static int getTimeInMinutes(long tradetime) {
+        // 转换 tradetime
+        String timeStr = String.valueOf(tradetime).substring(8, 12); // 提取 "HHmm"
+        int hour = Integer.parseInt(timeStr.substring(0, 2));
+        int minute = Integer.parseInt(timeStr.substring(2, 4));
+
+        // 将时间转换为从午夜开始的分钟数
+        return hour * 60 + minute;
+    }
+
+    // 时间分钟的六进制运算
+    public static String addTime(String time, long n, long b) {
+        // 解析输入的时间，获取小时和分钟
+        long hour = Long.parseLong(time.substring(0,2));
+        long minute = Long.parseLong(time.substring(2,4));
+
+        // 计算总的分钟数
+        long totalMinutes = hour * 60 + minute + (n * b);
+
+        // 计算新的小时和分钟
+        long newHour = (totalMinutes / 60) % 24;  // 处理24小时制
+        long newMinute = totalMinutes % 60;
+
+        // 格式化输出，保证输出为四位数
+        return String.format("%02d%02d", newHour, newMinute);
+    }
+
+    // 计算时间区间
+    public static String calculateTimeInterval(long timeWindowID) {
+
+        String timeWindowBegin = "";
+        String timeWindowEnd = "";
+
+        // 获取早上的开始时间的分钟数
+        int morningStartInMinutes = getTimeInMinutes(MORNING_START);
+        int morningEndInMinutes = getTimeInMinutes(MORNING_END);
+
+        // 获取早上和下午的timeWindowID间隔
+        long interval = (morningEndInMinutes - morningStartInMinutes) / TIME_WINDOW;
+
+        String morningStart = String.valueOf(MORNING_START).substring(8, 12);
+        String afternoonStart = String.valueOf(AFTERNOON_START).substring(8, 12);
+
+        if (timeWindowID <= interval) {
+            // 早上 9:30 - 11:30 的时间段，计算属于哪个窗口
+            timeWindowBegin = addTime(morningStart,timeWindowID-1, TIME_WINDOW);
+            timeWindowEnd = addTime(morningStart,timeWindowID, TIME_WINDOW);
+        } else if (timeWindowID > interval) {
+            // 下午 13:00 - 15:00 的时间段，计算属于哪个窗口
+            timeWindowBegin = addTime(afternoonStart,timeWindowID-1-interval, TIME_WINDOW);
+            timeWindowEnd = addTime(afternoonStart,timeWindowID-interval, TIME_WINDOW);
         }
 
-        context.write(outputValue, new Text(","+timeWindow));
+        return "20190102"+ timeWindowBegin + "00000 to 20190102" + timeWindowEnd + "00000";
     }
 }

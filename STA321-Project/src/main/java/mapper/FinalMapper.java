@@ -8,7 +8,7 @@ import java.io.IOException;
 
 public class FinalMapper extends Mapper<LongWritable, Text, LongWritable, Text> {
 
-    private static final long TIME_WINDOW = 20; // 10分钟时间窗口
+    private static final long TIME_WINDOW = 1; // 10分钟时间窗口
 
     // 时间段的起始和结束时间戳
     private static final long MORNING_START = 20190102093000000L;
@@ -40,18 +40,15 @@ public class FinalMapper extends Mapper<LongWritable, Text, LongWritable, Text> 
                     String price = records[12];
                     String tradeQty = records[13];
 
-                    // 获取时间窗口ID和时间段信息
-                    String timeWindowInfo = calculateTimeWindowID(tradeTime);
-                    String[] timeWindowParts = timeWindowInfo.split(",");
-                    LongWritable timeWindowID = new LongWritable(Long.parseLong(timeWindowParts[0]));
-                    String timeWindow = timeWindowParts[1];
+                    // 获取时间窗口ID
+                    LongWritable timeWindowID = new LongWritable(calculateTimeWindowID(tradeTime));
 
                     // 确定交易类型并获取主动单索引
                     String activeOrderIndex = (bidApplSeqNum > offerApplSeqNum) ? String.valueOf(bidApplSeqNum) : String.valueOf(offerApplSeqNum);
                     int tradeType = (bidApplSeqNum > offerApplSeqNum) ? 1 : 2;
 
                     // 输出 Key-Value 对
-                    String outputValue = activeOrderIndex + "," + price + "," + tradeQty + "," + tradeType + "," + timeWindow;
+                    String outputValue = activeOrderIndex + "," + price + "," + tradeQty + "," + tradeType;
 
                     context.write(timeWindowID, new Text(outputValue));
                 }
@@ -80,28 +77,9 @@ public class FinalMapper extends Mapper<LongWritable, Text, LongWritable, Text> 
         return hour * 60 + minute;
     }
 
-    // 时间分钟的六进制运算
-    public static String addTime(String time, long n, long b) {
-        // 解析输入的时间，获取小时和分钟
-        long hour = Long.parseLong(time.substring(0,2));
-        long minute = Long.parseLong(time.substring(2,4));
-
-        // 计算总的分钟数
-        long totalMinutes = hour * 60 + minute + (n * b);
-
-        // 计算新的小时和分钟
-        long newHour = (totalMinutes / 60) % 24;  // 处理24小时制
-        long newMinute = totalMinutes % 60;
-
-        // 格式化输出，保证输出为四位数
-        return String.format("%02d%02d", newHour, newMinute);
-    }
-
     // 计算时间窗口ID
-    public static String calculateTimeWindowID(long tradetime) {
+    public static long calculateTimeWindowID(long tradetime) {
 
-        String timeWindowBegin = "";
-        String timeWindowEnd = "";
         // 获取输入时间的分钟数
         int currentTimeInMinutes = getTimeInMinutes(tradetime);
 
@@ -111,31 +89,21 @@ public class FinalMapper extends Mapper<LongWritable, Text, LongWritable, Text> 
         int afternoonStartInMinutes = getTimeInMinutes(AFTERNOON_START);
         int afternoonEndInMinutes = getTimeInMinutes(AFTERNOON_END);
 
-
-        String morningStart = String.valueOf(MORNING_START).substring(8, 12);
-        String afternoonStart = String.valueOf(AFTERNOON_START).substring(8, 12);
-
         // 判断当前时间是早上还是下午，并计算属于哪个时间窗口
         long timeWindowID = -1;
 
         if (currentTimeInMinutes >= morningStartInMinutes && currentTimeInMinutes <= morningEndInMinutes) {
             // 早上 9:30 - 11:30 的时间段，计算属于哪个窗口
             timeWindowID = (currentTimeInMinutes - morningStartInMinutes) / TIME_WINDOW + 1;
-            timeWindowBegin = addTime(morningStart,timeWindowID-1, TIME_WINDOW);
-            timeWindowEnd = addTime(morningStart,timeWindowID, TIME_WINDOW);
         } else if (currentTimeInMinutes >= afternoonStartInMinutes && currentTimeInMinutes < afternoonEndInMinutes) {
             long interval = (morningEndInMinutes - morningStartInMinutes) / TIME_WINDOW;
             // 下午 13:00 - 15:00 的时间段，计算属于哪个窗口
             timeWindowID = (currentTimeInMinutes - afternoonStartInMinutes) / TIME_WINDOW + 1 + interval; // 下午的时间窗口ID从13开始
-            timeWindowBegin = addTime(afternoonStart,timeWindowID-1-interval, TIME_WINDOW);
-            timeWindowEnd = addTime(afternoonStart,timeWindowID-interval, TIME_WINDOW);
         } else if (currentTimeInMinutes == afternoonEndInMinutes) {
             long interval = (morningEndInMinutes - morningStartInMinutes) / TIME_WINDOW;
             timeWindowID = (currentTimeInMinutes - afternoonStartInMinutes) / TIME_WINDOW + (morningEndInMinutes - morningStartInMinutes) / TIME_WINDOW;
-            timeWindowBegin = addTime(afternoonStart,timeWindowID-1-interval, TIME_WINDOW);
-            timeWindowEnd = addTime(afternoonStart,timeWindowID-interval, TIME_WINDOW);
         }
 
-        return timeWindowID + "," + "20190102"+ timeWindowBegin + "00000 to 20190102" + timeWindowEnd + "00000";
+        return timeWindowID;
     }
 }
