@@ -25,7 +25,7 @@ public class FinalReducer extends Reducer<LongWritable, Text, Text, Text> {
 
     private static final double CIRCULATION_STOCK = 17170245800.0; // 流通盘总量
 
-    private static final long TIME_WINDOW = 1; // 1分钟时间窗口
+    private static final long TIME_WINDOW = 30; // 时间窗口
 
     // 时间段的起始和结束时间戳
     private static final long MORNING_START = 20190102093000000L;
@@ -46,7 +46,7 @@ public class FinalReducer extends Reducer<LongWritable, Text, Text, Text> {
         if (!isHeaderWritten) {
             String header = "主力净流入,主力流入,主力流出,超大买单成交量,超大买单成交额,超大卖单成交量,超大卖单成交额,"
                     + "大买单成交量,大买单成交额,大卖单成交量,大卖单成交额,中买单成交量,中买单成交额,中卖单成交量,中卖单成交额,"
-                    + "小买单成交量,小买单成交额,小卖单成交量,小卖单成交额,";
+                    + "小买单成交量,小买单成交额,小卖单成交量,小卖单成交额";
             context.write(new Text(header), new Text("时间区间"));  // 输出表头
             isHeaderWritten = true;  // 标记表头已输出
         }
@@ -59,7 +59,7 @@ public class FinalReducer extends Reducer<LongWritable, Text, Text, Text> {
             long initial = index;
             for (long i = initial; i < key.get(); i++){
                 String timeInterval = calculateTimeInterval(index);
-                context.write(new Text("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"), new Text(timeInterval)); // 补足缺失的时间区间
+                context.write(new Text("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0"), new Text(timeInterval)); // 补足缺失的时间区间
                 index++;
             }
         }
@@ -72,7 +72,7 @@ public class FinalReducer extends Reducer<LongWritable, Text, Text, Text> {
 
         // 遍历所有值，累加每个主动委托索引的成交量和成交额，并记录买卖类型
         for (Text value : values) {
-            String[] fields = value.toString().split(",");
+            String[] fields = value.toString().split("\t");
 
             try {
                 String activeOrderIndex = fields[0].trim();       // 主动委托索引
@@ -156,9 +156,10 @@ public class FinalReducer extends Reducer<LongWritable, Text, Text, Text> {
 
         Text outputValue = new Text(resultBuilder.toString());
 
-        context.write(outputValue, new Text(","+timeInterval));
+        context.write(outputValue, new Text(timeInterval));
         index++;
     }
+
     // 将时间字符串（yyyyMMddHHmmssSSS）转化为分钟
     public static int getTimeInMinutes(long tradetime) {
         // 转换 tradetime

@@ -23,7 +23,7 @@ import java.io.IOException;
 
 public class FinalMapper extends Mapper<LongWritable, Text, LongWritable, Text> {
 
-    private static final long TIME_WINDOW = 1; // 1分钟时间窗口
+    private static final long TIME_WINDOW = 30; // 时间窗口
 
     // 时间段的起始和结束时间戳
     private static final long MORNING_START = 20190102093000000L;
@@ -46,7 +46,7 @@ public class FinalMapper extends Mapper<LongWritable, Text, LongWritable, Text> 
             long tradeTime = Long.parseLong(records[15]);
 
             // 筛选条件：仅处理 ExecType = F 和 SecurityID = 000001
-            if ("F".equals(execType) && "000001".equals(securityID)) {
+            if ("F".equals(execType) && "300001".equals(securityID)) {
 
                 // 筛选时间窗口（早上和下午的时间段）
                 if (isWithinTradingTime(tradeTime)) {
@@ -63,7 +63,7 @@ public class FinalMapper extends Mapper<LongWritable, Text, LongWritable, Text> 
                     int tradeType = (bidApplSeqNum > offerApplSeqNum) ? 1 : 2;
 
                     // 输出 Key-Value 对
-                    String outputValue = activeOrderIndex + "," + price + "," + tradeQty + "," + tradeType;
+                    String outputValue = activeOrderIndex + "\t" + price + "\t" + tradeQty + "\t" + tradeType;
 
                     context.write(timeWindowID, new Text(outputValue));
                 }

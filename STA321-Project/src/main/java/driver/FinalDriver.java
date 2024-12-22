@@ -51,6 +51,9 @@ public class FinalDriver {
         Job job = Job.getInstance(conf, "Final Trade Analysis");
         job.setJarByClass(FinalDriver.class);
 
+        // 设置输出格式的分隔符，例如设置为逗号
+        job.getConfiguration().set("mapreduce.output.textoutputformat.separator", ","); // 修改为逗号分隔
+
         // 设置 Mapper
         MultipleInputs.addInputPath(job, new Path(TRADE_INPUT_PATH1), TextInputFormat.class, FinalMapper.class);
         MultipleInputs.addInputPath(job, new Path(TRADE_INPUT_PATH2), TextInputFormat.class, FinalMapper.class);
