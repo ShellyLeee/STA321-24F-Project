@@ -113,7 +113,7 @@ public class FinalMapper extends Mapper<LongWritable, Text, LongWritable, Text> 
         } else if (currentTimeInMinutes >= afternoonStartInMinutes && currentTimeInMinutes < afternoonEndInMinutes) {
             long interval = (morningEndInMinutes - morningStartInMinutes) / TIME_WINDOW;
             // 下午 13:00 - 15:00 的时间段，计算属于哪个窗口
-            timeWindowID = (currentTimeInMinutes - afternoonStartInMinutes) / TIME_WINDOW + 1 + interval; // 下午的时间窗口ID从13开始
+            timeWindowID = (currentTimeInMinutes - afternoonStartInMinutes) / TIME_WINDOW + 1 + interval;
         } else if (currentTimeInMinutes == afternoonEndInMinutes) {
             long interval = (morningEndInMinutes - morningStartInMinutes) / TIME_WINDOW;
             timeWindowID = (currentTimeInMinutes - afternoonStartInMinutes) / TIME_WINDOW + (morningEndInMinutes - morningStartInMinutes) / TIME_WINDOW;
