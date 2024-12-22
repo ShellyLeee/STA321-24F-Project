@@ -30,7 +30,7 @@ import java.util.List;
 public class CsvToHtml {
     public static void main(String[] args) {
         String csvFile = "data/Final_10.csv"; // CSV文件路径
-        String jsFile = "data/script.js"; // JavaScript文件路径
+        String jsFile = "visualization/script.js"; // JavaScript文件路径
         List<String[]> data = readCsv(csvFile);
         generateJs(jsFile, data);
     }
