@@ -25,7 +25,7 @@ public class FinalReducer extends Reducer<LongWritable, Text, Text, Text> {
 
     private static final double CIRCULATION_STOCK = 17170245800.0; // 流通盘总量
 
-    private static final long TIME_WINDOW = 30; // 时间窗口
+    private static final long TIME_WINDOW = 10; // 时间窗口
 
     // 时间段的起始和结束时间戳
     private static final long MORNING_START = 20190102093000000L;

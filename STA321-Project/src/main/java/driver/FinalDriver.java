@@ -39,6 +39,12 @@ public class FinalDriver {
         // 配置作业
         Configuration conf = new Configuration();
 
+        long fileSizeInBytes = 1342827015L;
+
+        conf.set("mapreduce.input.fileinputformat.split.minsize", String.valueOf(fileSizeInBytes));
+        conf.set("mapreduce.input.fileinputformat.split.maxsize", String.valueOf(fileSizeInBytes));
+
+
         FileSystem fs = FileSystem.get(conf);
 
         // 检查输出路径是否存在，如果存在则删除
