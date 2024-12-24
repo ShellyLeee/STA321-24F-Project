@@ -49,7 +49,7 @@ public class FinalDriver2 {
         }
 
         Job job = Job.getInstance(conf, "Final Trade Analysis");
-        job.setJarByClass(FinalDriver.class);
+        job.setJarByClass(FinalDriver2.class);
 
         // 设置输出格式的分隔符，例如设置为逗号
         job.getConfiguration().set("mapreduce.output.textoutputformat.separator", ","); // 修改为逗号分隔
