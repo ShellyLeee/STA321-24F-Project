@@ -47,6 +47,6 @@ visualization/
 ```
 
 ## Running Instruction
-You can download the program: `STA321 24F Project.jar` from https://github.com/ShellyLeee/STA321-24F-Project/tree/main/out/artifacts/STA321_24F_Project_jar, as well as the data (use SUSTech network to download the data via the website: http://172.18.30.155/p/DWa7pnYQNRg5IAA). Then, you should upload the jar program and data into your own cloud server, and run the computation from your end. 
+You can download the program: `STA321-24F-Project.jar` from https://github.com/ShellyLeee/STA321-24F-Project/tree/main/out/artifacts/STA321_24F_Project_jar, as well as the data (use SUSTech network to download the data via the website: http://172.18.30.155/p/DWa7pnYQNRg5IAA). Then, you should upload the jar program and data into your own cloud server, and run the computation from your end. 
 
-Also, you can do some customized setting on the driver, mapper and reducer based on your need, and generate a new jar program to run.
+Also, you can do some customized setting on the `driver`, `mapper` and `reducer` based on your need, and generate a new jar program to run.
